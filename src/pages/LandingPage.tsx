@@ -50,7 +50,7 @@ const LandingPage = () => {
               Registrar<span className="text-primary">Pet</span>
             </span>
           </div>
-          <Button variant="hero" size="sm" onClick={() => navigate("/cadastrar")}>
+          <Button variant="hero" size="sm" className="animate-button-pulse hover:animate-none" onClick={() => navigate("/cadastrar")}>
             Cadastrar meu Pet
           </Button>
         </div>
@@ -78,7 +78,7 @@ const LandingPage = () => {
               dados completos e QR Code. Segurança, organização e cuidado na palma da sua mão.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Button variant="hero" size="xl" onClick={() => navigate("/cadastrar")}>
+              <Button variant="hero" size="xl" className="animate-button-pulse hover:animate-none" onClick={() => navigate("/cadastrar")}>
                 Cadastrar meu Pet <ArrowRight className="w-5 h-5" />
               </Button>
               <Button variant="outline" size="xl" onClick={() => {
@@ -179,7 +179,7 @@ const LandingPage = () => {
               <p className="text-lg mb-10 max-w-lg mx-auto" style={{ color: "rgba(255,255,255,0.8)" }}>
                 É rápido, fácil e gratuito. Gere o RG Digital do seu pet em poucos minutos.
               </p>
-              <Button variant="warm" size="xl" onClick={() => navigate("/cadastrar")}>
+              <Button variant="warm" size="xl" className="animate-button-pulse hover:animate-none" onClick={() => navigate("/cadastrar")}>
                 Cadastrar agora <ArrowRight className="w-5 h-5" />
               </Button>
             </div>
