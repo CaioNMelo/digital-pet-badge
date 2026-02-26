@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Share2 } from "lucide-react";
+import { ArrowLeft, Download, Share2, PawPrint } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -21,12 +21,12 @@ interface PetData {
   registroId: string;
 }
 
-const speciesEmoji: Record<string, string> = {
-  cachorro: "🐶",
-  gato: "🐱",
-  passaro: "🐦",
-  roedor: "🐹",
-  outro: "🐾",
+const speciesLabel: Record<string, string> = {
+  cachorro: "Canino",
+  gato: "Felino",
+  passaro: "Ave",
+  roedor: "Roedor",
+  outro: "Outro",
 };
 
 const RGPage = () => {
@@ -39,30 +39,32 @@ const RGPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
-          <p className="text-muted-foreground">Nenhum pet cadastrado ainda.</p>
-          <Button variant="hero" onClick={() => navigate("/cadastrar")}>Cadastrar Pet</Button>
+          <PawPrint className="w-16 h-16 text-muted-foreground mx-auto" />
+          <p className="text-muted-foreground text-lg">Nenhum pet cadastrado ainda.</p>
+          <Button variant="hero" size="lg" onClick={() => navigate("/cadastrar")}>Cadastrar Pet</Button>
         </div>
       </div>
     );
   }
 
   const formatDate = (date: string) => {
-    if (!date) return "—";
+    if (!date) return "Não informado";
     const [y, m, d] = date.split("-");
     return `${d}/${m}/${y}`;
   };
 
-  const maskCPF = (cpf: string) => {
-    if (cpf.length < 14) return cpf;
-    return `***.***.${cpf.slice(8)}`;
-  };
+  const today = new Date().toLocaleDateString("pt-BR");
 
   const handleDownloadPDF = async () => {
     if (!cardRef.current) return;
-    const canvas = await html2canvas(cardRef.current, { scale: 2, useCORS: true, backgroundColor: null });
+    const canvas = await html2canvas(cardRef.current, { scale: 3, useCORS: true, backgroundColor: null });
     const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: [100, 150] });
-    pdf.addImage(imgData, "PNG", 0, 0, 150, 100);
+    const imgW = canvas.width;
+    const imgH = canvas.height;
+    const pdfW = 180;
+    const pdfH = (imgH * pdfW) / imgW;
+    const pdf = new jsPDF({ orientation: pdfH > pdfW ? "portrait" : "landscape", unit: "mm", format: [pdfW + 20, pdfH + 20] });
+    pdf.addImage(imgData, "PNG", 10, 10, pdfW, pdfH);
     pdf.save(`RG_${pet.nome}_${pet.registroId}.pdf`);
   };
 
@@ -76,7 +78,7 @@ const RGPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-muted/50">
       <header className="bg-background/80 backdrop-blur-md border-b sticky top-0 z-50">
         <div className="container mx-auto flex items-center gap-4 h-16 px-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
@@ -91,77 +93,119 @@ const RGPage = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">RG Digital do Pet 🎉</h1>
-          <p className="text-muted-foreground">O registro digital de {pet.nome} foi gerado com sucesso!</p>
+      <main className="container mx-auto px-4 py-10 max-w-2xl">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
+            ✅ Registro concluído
+          </div>
+          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">RG Digital do Pet</h1>
+          <p className="text-muted-foreground">O registro de <strong className="text-foreground">{pet.nome}</strong> foi gerado com sucesso!</p>
         </div>
 
-        {/* RG Card */}
-        <div ref={cardRef} className="mx-auto max-w-lg">
-          <div className="rounded-2xl overflow-hidden shadow-lg border" style={{ background: "linear-gradient(135deg, hsl(168 55% 42%), hsl(200 70% 50%))" }}>
-            {/* Card Header */}
-            <div className="px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🐾</span>
-                <div>
-                  <p className="text-sm font-bold" style={{ color: "white" }}>REGISTRO DIGITAL</p>
-                  <p className="text-xs" style={{ color: "rgba(255,255,255,0.8)" }}>RegistrarPet</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xs" style={{ color: "rgba(255,255,255,0.8)" }}>Nº Registro</p>
-                <p className="text-xs font-mono font-bold" style={{ color: "white" }}>{pet.registroId}</p>
-              </div>
+        {/* RG Card - Official Brazilian RG Style */}
+        <div ref={cardRef} className="mx-auto max-w-[520px]">
+          <div className="rounded-xl overflow-hidden shadow-2xl border-2 border-primary/20" style={{ background: "#f0faf7" }}>
+            {/* Top Banner - Blue header like real RG */}
+            <div className="px-5 py-3 text-center" style={{ background: "linear-gradient(135deg, #1a5c4c, #1a7a6a, #2196a8)" }}>
+              <p className="text-[10px] tracking-[3px] uppercase font-bold" style={{ color: "rgba(255,255,255,0.7)" }}>República Federativa do Brasil</p>
+              <p className="text-lg font-heading font-black tracking-wide" style={{ color: "white" }}>REGISTRO GERAL — PET</p>
+              <p className="text-[10px] tracking-[2px]" style={{ color: "rgba(255,255,255,0.6)" }}>DOCUMENTO DE IDENTIFICAÇÃO ANIMAL</p>
             </div>
 
-            {/* Card Body */}
-            <div className="bg-card mx-2 mb-2 rounded-xl p-5">
+            {/* Body */}
+            <div className="p-5">
               <div className="flex gap-5">
-                {/* Photo */}
-                <div className="flex-shrink-0">
-                  <div className="w-24 h-28 rounded-xl overflow-hidden border-2 border-primary/20">
+                {/* Left Column - Photo + QR */}
+                <div className="flex-shrink-0 space-y-3">
+                  <div className="w-[110px] h-[130px] rounded-lg overflow-hidden border-2" style={{ borderColor: "#1a7a6a" }}>
                     <img src={pet.foto} alt={pet.nome} className="w-full h-full object-cover" />
                   </div>
-                  <div className="mt-2 flex justify-center">
-                    <QRCodeSVG value={`registrarpet://pet/${pet.registroId}`} size={60} level="M" />
+                  <div className="flex justify-center bg-background rounded-lg p-2">
+                    <QRCodeSVG
+                      value={`https://registrarpet.com/consulta/${pet.registroId}`}
+                      size={80}
+                      level="M"
+                      fgColor="#1a5c4c"
+                    />
                   </div>
                 </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0 space-y-1.5">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Nome</p>
-                    <p className="font-heading font-bold text-foreground text-lg leading-tight">{pet.nome}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Espécie</p>
-                      <p className="text-sm font-medium text-foreground">{speciesEmoji[pet.especie] || "🐾"} {pet.especie}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Raça</p>
-                      <p className="text-sm font-medium text-foreground">{pet.raca || "—"}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Sexo</p>
-                      <p className="text-sm font-medium text-foreground capitalize">{pet.sexo}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Nascimento</p>
-                      <p className="text-sm font-medium text-foreground">{formatDate(pet.dataNascimento)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Cor</p>
-                      <p className="text-sm font-medium text-foreground">{pet.corPredominante || "—"}</p>
-                    </div>
+                {/* Right Column - Info */}
+                <div className="flex-1 min-w-0 space-y-2.5">
+                  {/* Registration Number */}
+                  <div className="rounded-lg px-3 py-1.5" style={{ background: "#1a7a6a" }}>
+                    <p className="text-[9px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.7)" }}>Nº de Registro</p>
+                    <p className="font-mono font-bold text-sm tracking-wider" style={{ color: "white" }}>{pet.registroId}</p>
                   </div>
 
-                  <div className="pt-2 border-t">
-                    <p className="text-xs text-muted-foreground">Tutor</p>
-                    <p className="text-sm font-medium text-foreground">{pet.nomeTutor}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">CPF: {maskCPF(pet.cpfTutor)}</p>
+                  {/* Pet Name */}
+                  <div className="border-b pb-1.5" style={{ borderColor: "#1a7a6a33" }}>
+                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Nome</p>
+                    <p className="font-heading font-black text-foreground text-base">{pet.nome}</p>
                   </div>
+
+                  {/* Grid Info */}
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                    <div className="border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Espécie</p>
+                      <p className="text-xs font-semibold text-foreground">{speciesLabel[pet.especie] || pet.especie}</p>
+                    </div>
+                    <div className="border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Raça</p>
+                      <p className="text-xs font-semibold text-foreground">{pet.raca || "SRD"}</p>
+                    </div>
+                    <div className="border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Sexo</p>
+                      <p className="text-xs font-semibold text-foreground capitalize">{pet.sexo === "macho" ? "Macho" : "Fêmea"}</p>
+                    </div>
+                    <div className="border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Nascimento</p>
+                      <p className="text-xs font-semibold text-foreground">{formatDate(pet.dataNascimento)}</p>
+                    </div>
+                    <div className="col-span-2 border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Cor Predominante</p>
+                      <p className="text-xs font-semibold text-foreground">{pet.corPredominante || "Não informada"}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Owner Section */}
+              <div className="mt-4 pt-3 border-t-2" style={{ borderColor: "#1a7a6a33" }}>
+                <p className="text-[9px] uppercase tracking-[2px] font-bold mb-2" style={{ color: "#1a7a6a" }}>Dados do Tutor Responsável</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Nome</p>
+                    <p className="text-xs font-semibold text-foreground">{pet.nomeTutor}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground">CPF</p>
+                    <p className="text-xs font-semibold text-foreground">{pet.cpfTutor}</p>
+                  </div>
+                  {pet.telefone && (
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Telefone</p>
+                      <p className="text-xs font-semibold text-foreground">{pet.telefone}</p>
+                    </div>
+                  )}
+                  {pet.endereco && (
+                    <div className={pet.telefone ? "" : "col-span-2"}>
+                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Endereço</p>
+                      <p className="text-xs font-semibold text-foreground truncate">{pet.endereco}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="mt-4 pt-2 flex items-center justify-between border-t" style={{ borderColor: "#1a7a6a22" }}>
+                <div>
+                  <p className="text-[8px] uppercase tracking-wider text-muted-foreground">Data de emissão</p>
+                  <p className="text-[10px] font-semibold text-foreground">{today}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[8px] text-muted-foreground">registrarpet.com</p>
+                  <p className="text-[8px] font-bold" style={{ color: "#1a7a6a" }}>🐾 RegistrarPet</p>
                 </div>
               </div>
             </div>
@@ -169,7 +213,7 @@ const RGPage = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-8 max-w-lg mx-auto">
+        <div className="flex flex-col sm:flex-row gap-3 mt-10 max-w-[520px] mx-auto">
           <Button variant="hero" size="lg" className="flex-1" onClick={handleDownloadPDF}>
             <Download className="w-5 h-5" />
             Baixar RG do Pet em PDF
@@ -182,9 +226,9 @@ const RGPage = () => {
           )}
         </div>
 
-        <div className="text-center mt-8">
-          <Button variant="secondary" onClick={() => navigate("/cadastrar")}>
-            Cadastrar outro pet
+        <div className="text-center mt-6">
+          <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>
+            + Cadastrar outro pet
           </Button>
         </div>
       </main>
