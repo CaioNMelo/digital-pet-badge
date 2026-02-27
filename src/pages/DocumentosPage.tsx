@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { PawPrint, FileText, CreditCard } from "lucide-react";
+import { PawPrint, FileText, CreditCard, Syringe } from "lucide-react";
 
 interface PetData {
   nome: string; foto: string; especie: string; raca: string; sexo: string;
@@ -68,27 +68,38 @@ const DocumentosPage = () => {
         </div>
 
         {/* Document cards */}
-        <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+        <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
           <button
             onClick={() => navigate("/rg", { state: { pet } })}
-            className="group bg-card rounded-2xl p-8 border-2 border-border/60 shadow-sm hover:border-primary hover:shadow-lg transition-all text-left"
+            className="group bg-card rounded-2xl p-6 border-2 border-border/60 shadow-sm hover:border-primary hover:shadow-lg transition-all text-left"
           >
-            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <CreditCard className="w-7 h-7 text-primary" />
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+              <CreditCard className="w-6 h-6 text-primary" />
             </div>
-            <h3 className="font-heading font-bold text-xl text-foreground mb-2">RG Digital</h3>
-            <p className="text-sm text-muted-foreground">Carteira de identidade animal no formato de carteirinha, pronta para imprimir.</p>
+            <h3 className="font-heading font-bold text-lg text-foreground mb-1">RG Digital</h3>
+            <p className="text-sm text-muted-foreground">Carteira de identidade animal.</p>
           </button>
 
           <button
             onClick={() => navigate("/certidao", { state: { pet } })}
-            className="group bg-card rounded-2xl p-8 border-2 border-border/60 shadow-sm hover:border-primary hover:shadow-lg transition-all text-left"
+            className="group bg-card rounded-2xl p-6 border-2 border-border/60 shadow-sm hover:border-primary hover:shadow-lg transition-all text-left"
           >
-            <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <FileText className="w-7 h-7 text-primary" />
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+              <FileText className="w-6 h-6 text-primary" />
             </div>
-            <h3 className="font-heading font-bold text-xl text-foreground mb-2">Certidão de Nascimento</h3>
-            <p className="text-sm text-muted-foreground">Documento oficial de registro com todos os dados do pet e do tutor.</p>
+            <h3 className="font-heading font-bold text-lg text-foreground mb-1">Certidão de Nascimento</h3>
+            <p className="text-sm text-muted-foreground">Registro oficial com todos os dados.</p>
+          </button>
+
+          <button
+            onClick={() => navigate("/vacinacao", { state: { pet } })}
+            className="group bg-card rounded-2xl p-6 border-2 border-border/60 shadow-sm hover:border-primary hover:shadow-lg transition-all text-left"
+          >
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
+              <Syringe className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="font-heading font-bold text-lg text-foreground mb-1">Carteira de Vacinação</h3>
+            <p className="text-sm text-muted-foreground">Controle de imunização animal.</p>
           </button>
         </div>
 
