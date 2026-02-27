@@ -57,7 +57,12 @@ const RGPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+  // Inicializa o scale imediatamente (lazy) para evitar flash de scroll no primeiro render
+  const [scale, setScale] = useState(() => {
+    if (typeof window === "undefined") return 1;
+    const avail = window.innerWidth - 32;
+    return avail < 960 ? avail / 960 : 1;
+  });
   const pet = (location.state as { pet: PetData })?.pet;
 
   useEffect(() => {
@@ -65,7 +70,6 @@ const RGPage = () => {
       const avail = window.innerWidth - 32;
       setScale(avail < 960 ? avail / 960 : 1);
     };
-    update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
@@ -123,7 +127,7 @@ const RGPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-muted/50">
+    <div className="min-h-screen bg-muted/50 overflow-x-hidden">
       <header className="bg-background/80 backdrop-blur-md border-b sticky top-0 z-50 print:hidden">
         <div className="container mx-auto flex items-center gap-4 h-16 px-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}><ArrowLeft className="w-5 h-5" /></Button>
@@ -134,16 +138,16 @@ const RGPage = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-10 max-w-5xl">
+      <main className="container mx-auto px-4 py-10 max-w-5xl overflow-x-hidden">
         <div className="text-center mb-8 print:hidden">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-semibold mb-4">✅ Registro concluído</div>
           <h1 className="text-3xl font-heading font-bold text-foreground mb-2">RG Digital do Pet</h1>
           <p className="text-muted-foreground">Documento de <strong className="text-foreground">{pet.nome}</strong> pronto para download/impressão.</p>
         </div>
 
-        {/* Container responsivo com scale automático */}
-        <div className="flex justify-center w-full mb-6">
-          <div style={{ width: CW * scale, height: CH * scale, position: "relative", flexShrink: 0 }}>
+        {/* Container responsivo com scale automático — overflow:hidden evita scrollbar */}
+        <div className="flex justify-center w-full mb-6 overflow-hidden">
+          <div style={{ width: CW * scale, height: CH * scale, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: 0, left: 0, transformOrigin: "top left", transform: `scale(${scale})`, width: CW, height: CH }}>
 
               {/* CARD RG */}
