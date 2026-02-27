@@ -8,6 +8,7 @@ import CadastrarPage from "./pages/CadastrarPage";
 import RGPage from "./pages/RGPage";
 import CertidaoPage from "./pages/CertidaoPage";
 import DocumentosPage from "./pages/DocumentosPage";
+import VacinacaoPage from "./pages/VacinacaoPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/documentos" element={<DocumentosPage />} />
           <Route path="/rg" element={<RGPage />} />
           <Route path="/certidao" element={<CertidaoPage />} />
+          <Route path="/vacinacao" element={<VacinacaoPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
