@@ -158,61 +158,69 @@ const RGPage = () => {
                   {/* METADE ESQUERDA */}
                   <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
 
-                    {/* Texto lateral esquerdo */}
-                    <VText w={22} h={HH} size={8} weight={650} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    {/* Faixa lateral esquerda — "REGISTRADO POR..." como borda fina */}
+                    <VText w={20} h={HH} size={7.5} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
 
-                    {/* Área central da metade esquerda */}
-                    <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "stretch", overflow: "hidden" }}>
+                    {/* Área interna com padding generoso */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "stretch", padding: "14px 10px 14px 6px", gap: 0, overflow: "hidden" }}>
 
-                      {/* Textos verticais "REGISTRO DOS ANIMAIS..." */}
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderRight: "1px solid rgba(74,110,88,0.2)", padding: "8px 0", gap: 6, flexShrink: 0 }}>
-                        <VText w={36} h={HH - 40} size={17} weight={700} rotate={-90} spacing={0}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
-                        <VText w={14} h={HH - 40} size={7} weight={700} rotate={-90} spacing={0.3}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
+                      {/* Bloco de títulos verticais — empurrado para esquerda com margin-right */}
+                      <div style={{
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        borderRight: "1px solid rgba(74,110,88,0.25)",
+                        paddingRight: 6, marginRight: 12, gap: 4, flexShrink: 0,
+                      }}>
+                        <VText w={34} h={HH - 60} size={15} weight={800} rotate={-90} spacing={0.2}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
+                        <VText w={13} h={HH - 60} size={6.5} weight={700} rotate={-90} spacing={0.4}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
                       </div>
 
-                      {/* Coluna central: foto + assinatura + QR */}
-                      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: "12px 10px" }}>
+                      {/* Coluna central: foto + assinatura + QR — perfeitamente centralizada */}
+                      <div style={{
+                        flex: 1,
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center",
+                        gap: 8,
+                        padding: "0 6px",
+                      }}>
 
                         {/* Foto */}
                         <div style={{
                           width: IMG_SIZE, height: IMG_SIZE,
                           backgroundColor: "#fff",
-                          border: "2px solid rgba(74,110,88,0.5)",
-                          borderRadius: 3,
-                          overflow: "hidden",
-                          flexShrink: 0,
+                          border: "1.5px solid rgba(74,110,88,0.55)",
+                          borderRadius: 4,
+                          overflow: "hidden", flexShrink: 0,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
                         }}>
                           {pet.foto
                             ? <img src={pet.foto} alt={pet.nome} crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            : <PawPrint style={{ width: 60, height: 60, color: "#ccc" }} />
+                            : <PawPrint style={{ width: 56, height: 56, color: "#aaa" }} />
                           }
                         </div>
 
                         {/* Linha de assinatura */}
-                        <div style={{ width: IMG_SIZE, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-                          <div style={{ width: "100%", height: 1, backgroundColor: "rgba(26,26,26,0.4)" }} />
-                          <span style={{ fontSize: 8, fontWeight: 700, color: "#333", textTransform: "uppercase", fontFamily: "Arial, sans-serif", letterSpacing: 1 }}>• ASSINATURA DO TUTOR</span>
+                        <div style={{ width: IMG_SIZE, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, paddingTop: 2 }}>
+                          <div style={{ width: "100%", height: 1, backgroundColor: "rgba(26,26,26,0.35)" }} />
+                          <span style={{ fontSize: 7.5, fontWeight: 700, color: "#333", textTransform: "uppercase", fontFamily: "Arial, sans-serif", letterSpacing: 1.2 }}>• ASSINATURA DO TUTOR</span>
                         </div>
 
                         {/* QR Code */}
                         <div style={{
                           width: IMG_SIZE, height: IMG_SIZE,
                           backgroundColor: "#fff",
-                          border: "2px solid rgba(74,110,88,0.5)",
-                          borderRadius: 3,
+                          border: "1.5px solid rgba(74,110,88,0.55)",
+                          borderRadius: 4,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          flexShrink: 0,
-                          position: "relative", overflow: "hidden",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+                          flexShrink: 0, position: "relative", overflow: "hidden",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
                         }}>
                           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.05 }}>
-                            <PawPrint style={{ width: 120, height: 120, color: "#000" }} />
+                            <PawPrint style={{ width: 110, height: 110, color: "#000" }} />
                           </div>
                           <QRCodeSVG
                             value={`https://registrarpet.com/consulta/${pet.registroId}`}
-                            size={IMG_SIZE - 20}
+                            size={IMG_SIZE - 18}
                             level="M"
                             fgColor="#1a1a1a"
                             style={{ position: "relative", zIndex: 1 }}
@@ -222,8 +230,8 @@ const RGPage = () => {
                       </div>
                     </div>
 
-                    {/* Texto lateral direito da metade esquerda */}
-                    <VText w={22} h={HH} size={8} weight={650} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    {/* Faixa lateral direita da metade esquerda */}
+                    <VText w={20} h={HH} size={7.5} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
                   </div>
 
                   {/* DIVISÓRIA */}
