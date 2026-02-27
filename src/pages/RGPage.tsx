@@ -153,119 +153,131 @@ const RGPage = () => {
                   {/* METADE ESQUERDA */}
                   <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden", position: "relative" }}>
 
-                    {/* FAIXA ESQUERDA: Textos "REGISTRADO POR", "REGISTRO DOS ANIMAIS" */}
-                    <div style={{
-                      display: "flex", flexDirection: "row", alignItems: "center",
-                      backgroundColor: "rgba(0,0,0,0.03)", // Suave destaque de fundo, opcional
-                      borderRight: "1.5px solid rgba(74,110,88,0.25)",
-                      padding: "16px 4px",
-                      gap: 4
-                    }}>
-                      <VText w={16} h={HH} size={7} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    {/* Faixa lateral esquerda — "REGISTRADO POR..." como borda fina */}
+                    <VText w={20} h={HH} size={7.5} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
 
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, width: 44 }}>
-                        <VText w={24} h={HH - 40} size={15} weight={800} rotate={-90} spacing={0.2}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
-                        <VText w={14} h={HH - 40} size={6.5} weight={700} rotate={-90} spacing={0.5}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
-                      </div>
-                    </div>
+                    {/* Área interna flex */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "stretch", padding: "18px 12px 18px 8px", gap: 0, overflow: "hidden" }}>
 
-                    {/* ÁREA CENTRAL: Blocos de Imagem (Foto em cima, QR embaixo) */}
-                    <div style={{
-                      flex: 1,
-                      display: "flex", flexDirection: "column",
-                      alignItems: "center", justifyContent: "space-evenly",
-                      padding: "20px 0"
-                    }}>
-                      {/* Foto */}
+                      {/* Bloco de títulos verticais CENTRALIZADOS (como em RGs reais) */}
                       <div style={{
-                        width: 200, height: 200,
-                        backgroundColor: "#fff",
-                        border: "2px solid #555", // Borda mais forte como na referência
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        overflow: "hidden"
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                        borderRight: "1.5px solid rgba(74,110,88,0.25)",
+                        paddingRight: 8, marginRight: 20, gap: 5, flexShrink: 0,
                       }}>
-                        {pet.foto
-                          ? <img src={pet.foto} alt={pet.nome} crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          : <PawPrint style={{ width: 60, height: 60, color: "#aaa" }} />
-                        }
+                        {/* Como estão centralizados usando justifyContent:center, não precisam definir height forçada com HH-40 */}
+                        <VText w={36} h={HH} size={16} weight={800} rotate={-90} spacing={0.2}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
+                        <VText w={14} h={HH} size={7} weight={700} rotate={-90} spacing={0.5}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
                       </div>
 
-                      {/* QR Code */}
+                      {/* Coluna central: Foto -> Assinatura (Horizontal) -> QR Code */}
                       <div style={{
-                        width: 200, height: 200,
-                        backgroundColor: "#fff",
-                        border: "2px solid #555",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        position: "relative", overflow: "hidden"
+                        flex: 1,
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "space-between", // Espalha as 3 sessões
+                        padding: "4px 10px",
                       }}>
-                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.05 }}>
-                          <PawPrint style={{ width: 140, height: 140, color: "#000" }} />
+
+                        {/* Foto */}
+                        <div style={{
+                          width: IMG_SIZE, height: IMG_SIZE,
+                          backgroundColor: "#fff",
+                          border: "1.5px solid rgba(74,110,88,0.6)",
+                          borderRadius: 4,
+                          overflow: "hidden", flexShrink: 0,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
+                        }}>
+                          {pet.foto
+                            ? <img src={pet.foto} alt={pet.nome} crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : <PawPrint style={{ width: 60, height: 60, color: "#aaa" }} />
+                          }
                         </div>
-                        <QRCodeSVG
-                          value={`https://registrarpet.com/consulta/${pet.registroId}`}
-                          size={180}
-                          level="M"
-                          fgColor="#1a1a1a"
-                          style={{ position: "relative", zIndex: 1 }}
-                        />
+
+                        {/* Linha de assinatura HORIZONTAL no meio */}
+                        <div style={{
+                          width: IMG_SIZE + 10, // Um pouco mais larga que a foto/QR
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                          marginTop: 8, marginBottom: 8
+                        }}>
+                          <div style={{ width: "100%", height: 1.5, backgroundColor: "rgba(26,26,26,0.6)" }} />
+                          <span style={{ fontSize: 8.5, fontWeight: 700, color: "#222", textTransform: "uppercase", fontFamily: "Arial, sans-serif", letterSpacing: 1.5 }}>
+                            ASSINATURA
+                          </span>
+                        </div>
+
+                        {/* QR Code */}
+                        <div style={{
+                          width: IMG_SIZE, height: IMG_SIZE,
+                          backgroundColor: "#fff",
+                          border: "1.5px solid rgba(74,110,88,0.6)",
+                          borderRadius: 4,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0, position: "relative", overflow: "hidden",
+                          boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
+                        }}>
+                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.05 }}>
+                            <PawPrint style={{ width: 115, height: 115, color: "#000" }} />
+                          </div>
+                          <QRCodeSVG
+                            value={`https://registrarpet.com/consulta/${pet.registroId}`}
+                            size={IMG_SIZE - 24}
+                            level="M"
+                            fgColor="#1a1a1a"
+                            style={{ position: "relative", zIndex: 1 }}
+                          />
+                        </div>
+
                       </div>
                     </div>
 
-                    {/* FAIXA DIREITA (próxima à divisória): Texto de Assinatura e "REGISTRADO POR" */}
-                    <div style={{
-                      display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-                      padding: "16px 6px", width: 40
-                    }}>
-                      <VText w={16} h={HH} size={9} weight={700} rotate={-90} spacing={1}>• ASSINATURA</VText>
-                      <VText w={16} h={HH} size={7} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
-                    </div>
-
+                    {/* Faixa lateral direita da metade esquerda (se mantém na divisória) */}
+                    <VText w={20} h={HH} size={7.5} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
                   </div>
 
                   {/* DIVISÓRIA */}
                   <div style={{ width: 8, display: "flex", alignItems: "stretch", justifyContent: "center", opacity: 0.3 }}>
                     <div style={{ width: 1, borderLeft: "2px dashed rgba(0,0,0,0.5)", height: "100%" }} />
-                  </div>
 
-                  {/* METADE DIREITA */}
-                  <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
-                    <div style={{ borderRight: "1px solid rgba(74,110,88,0.25)", flexShrink: 0, marginRight: 8 }}>
-                      <VText w={30} h={HH} size={9} weight={700} rotate={-90} spacing={1.5}>CARTEIRA DE IDENTIDADE ANIMAL</VText>
+                    {/* METADE DIREITA */}
+                    <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
+                      <div style={{ borderRight: "1px solid rgba(74,110,88,0.25)", flexShrink: 0, marginRight: 8 }}>
+                        <VText w={30} h={HH} size={9} weight={700} rotate={-90} spacing={1.5}>CARTEIRA DE IDENTIDADE ANIMAL</VText>
+                      </div>
+
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", paddingLeft: 20, paddingRight: 8 }}>
+                        <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch", borderBottom: "2px solid rgba(74,110,88,0.4)" }}>
+                          {grupo1.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo1.length - 1} />)}
+                        </div>
+                        <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch" }}>
+                          {grupo2.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo2.length - 1} />)}
+                        </div>
+                      </div>
+
+                      <VText w={24} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
                     </div>
 
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", paddingLeft: 20, paddingRight: 8 }}>
-                      <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch", borderBottom: "2px solid rgba(74,110,88,0.4)" }}>
-                        {grupo1.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo1.length - 1} />)}
-                      </div>
-                      <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch" }}>
-                        {grupo2.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo2.length - 1} />)}
-                      </div>
-                    </div>
-
-                    <VText w={24} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
                   </div>
-
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Botões */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-4 max-w-[600px] mx-auto print:hidden">
-          <Button variant="hero" size="lg" className="flex-1 h-14" onClick={handleDownloadPDF}>
-            <Download className="w-5 h-5 mr-1" />Baixar RG em PDF (A4)
-          </Button>
-          {navigator.share && (
-            <Button variant="outline" size="lg" className="h-14" onClick={handleShare}>
-              <Share2 className="w-5 h-5 mr-1" />Compartilhar
+          {/* Botões */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-4 max-w-[600px] mx-auto print:hidden">
+            <Button variant="hero" size="lg" className="flex-1 h-14" onClick={handleDownloadPDF}>
+              <Download className="w-5 h-5 mr-1" />Baixar RG em PDF (A4)
             </Button>
-          )}
-        </div>
+            {navigator.share && (
+              <Button variant="outline" size="lg" className="h-14" onClick={handleShare}>
+                <Share2 className="w-5 h-5 mr-1" />Compartilhar
+              </Button>
+            )}
+          </div>
 
-        <div className="text-center mt-6 print:hidden">
-          <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>+ Cadastrar outro pet</Button>
-        </div>
+          <div className="text-center mt-6 print:hidden">
+            <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>+ Cadastrar outro pet</Button>
+          </div>
       </main>
     </div>
   );
