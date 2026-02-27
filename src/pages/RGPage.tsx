@@ -182,7 +182,7 @@ const RGPage = () => {
                       </div>
                       <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-end", padding: "0 6px" }}>
                         <VText w={20} h={HH} size={9.5} weight={700} rotate={-90} spacing={1}>• ASSINATURA</VText>
-                        <div style={{ height: HH - 40, width: 1.5, backgroundColor: "rgba(26,26,26,0.6)", marginLeft: 4 }} />
+                        <div style={{ height: HH - 160, width: 1.5, backgroundColor: "rgba(26,26,26,0.6)", marginLeft: 16 }} />
                       </div>
                     </div>
                   </div>
