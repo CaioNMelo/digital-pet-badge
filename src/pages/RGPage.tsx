@@ -18,7 +18,6 @@ const speciesLabel: Record<string, string> = {
   cachorro: "Canino", gato: "Felino", passaro: "Ave", roedor: "Roedor", outro: "Outro",
 };
 
-// Texto vertical via rotate — sem writing-mode (compatível com html-to-image)
 const VText = ({ children, w, h, size = 9, weight = 700, rotate = -90, spacing = 0 }: {
   children: string; w: number; h: number; size?: number; weight?: number; rotate?: number; spacing?: number;
 }) => (
@@ -29,60 +28,22 @@ const VText = ({ children, w, h, size = 9, weight = 700, rotate = -90, spacing =
   </div>
 );
 
-// FieldCol: coluna vertical de campo para o RG.
-// Usa writing-mode:vertical-rl que o browser E o html-to-image renderizam corretamente.
-// Layout: valor (em cima, grande) | linha horizontal | label (em baixo, pequeno)
 const FieldCol = ({ label, value, colH, flexVal = 1 }: {
   label: string; value: string; colH: number; flexVal?: number;
 }) => (
-  <div style={{
-    flex: flexVal,
-    height: colH,
-    overflow: "hidden",
-    borderRight: "1px solid rgba(74,104,88,0.22)",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "6px 2px",
-    gap: 0,
-  }}>
-    {/* Valor — ocupa a maior parte do espaço — fica no topo da coluna (lado direito do card) */}
-    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0, overflow: "hidden" }}>
-      <span style={{
-        writingMode: "vertical-rl",
-        transform: "rotate(180deg)",
-        fontSize: 12,
-        fontWeight: 800,
-        color: "#111",
-        textTransform: "uppercase",
-        fontFamily: "Arial, sans-serif",
-        lineHeight: 1,
-        overflow: "hidden",
-        maxHeight: "100%",
-        letterSpacing: 0.5,
-      }}>
-        {value || "\u00A0"}
-      </span>
-    </div>
-
-    {/* Linha separadora horizontal */}
-    <div style={{ width: "75%", height: 1.5, backgroundColor: "#555", flexShrink: 0, margin: "4px 0" }} />
-
-    {/* Label — fixo em baixo */}
-    <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: 2 }}>
-      <span style={{
-        writingMode: "vertical-rl",
-        transform: "rotate(180deg)",
-        fontSize: 8,
-        fontWeight: 700,
-        color: "#1a1a1a",
-        textTransform: "uppercase",
-        fontFamily: "Arial, sans-serif",
-        lineHeight: 1,
-        letterSpacing: 0.8,
-        whiteSpace: "nowrap",
-      }}>
+  <div style={{ flex: flexVal, height: colH, position: "relative", overflow: "hidden", borderRight: "1px solid rgba(74,104,88,0.22)" }}>
+    <div style={{
+      position: "absolute", top: "50%", left: "50%",
+      width: colH - 20,
+      transform: "translate(-50%, -50%) rotate(-90deg)",
+      display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, padding: "0 4px",
+    }}>
+      <span style={{ fontSize: 7, fontWeight: 700, color: "#2a2a2a", textTransform: "uppercase", fontFamily: "Arial, sans-serif", whiteSpace: "nowrap", lineHeight: 1, letterSpacing: 0.3 }}>
         {label}
+      </span>
+      <div style={{ width: "100%", height: 1.5, backgroundColor: "#444", flexShrink: 0 }} />
+      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#111", textTransform: "uppercase", fontFamily: "Arial, sans-serif", whiteSpace: "nowrap", lineHeight: 1, overflow: "hidden", maxWidth: "100%", textOverflow: "ellipsis" }}>
+        {value || "\u00A0"}
       </span>
     </div>
   </div>
@@ -137,8 +98,12 @@ const RGPage = () => {
   };
 
   const CW = 960, CH = 600, HH = CH - 24;
-  // Dois grupos de campos — cada grupo ocupa metade da altura do lado direito
   const HALF = Math.floor((HH - 2) / 2);
+
+  // Tamanho das imagens (foto e QR) baseado no espaço disponível
+  // Metade esquerda: aprox 460px de largura total, removendo VTexts (~22+20+32+14+20 = ~108px de textos laterais)
+  // Área útil para imagens: ~352px, split verticalmente em 2 com gaps
+  const IMG_SIZE = 172;
 
   const grupo1 = [
     { label: "NOME", value: pet.nome, flex: 2 },
@@ -192,27 +157,73 @@ const RGPage = () => {
 
                   {/* METADE ESQUERDA */}
                   <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
+
+                    {/* Texto lateral esquerdo */}
                     <VText w={22} h={HH} size={8} weight={650} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
-                    <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "12px 6px", gap: 6 }}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%", gap: 4, paddingBottom: 6, flexShrink: 0 }}>
-                        <VText w={32} h={HH - 50} size={17} weight={700} rotate={-90} spacing={0}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
-                        <VText w={14} h={HH - 50} size={7} weight={700} rotate={-90} spacing={0.3}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
+
+                    {/* Área central da metade esquerda */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "stretch", overflow: "hidden" }}>
+
+                      {/* Textos verticais "REGISTRO DOS ANIMAIS..." */}
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", borderRight: "1px solid rgba(74,110,88,0.2)", padding: "8px 0", gap: 6, flexShrink: 0 }}>
+                        <VText w={36} h={HH - 40} size={17} weight={700} rotate={-90} spacing={0}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
+                        <VText w={14} h={HH - 40} size={7} weight={700} rotate={-90} spacing={0.3}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
                       </div>
-                      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: "100%", padding: "0 8px" }}>
+
+                      {/* Coluna central: foto + assinatura + QR */}
+                      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, padding: "12px 10px" }}>
+
                         {/* Foto */}
-                        <div style={{ width: 170, height: 170, backgroundColor: "#fff", border: "1px solid #aaa", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          {pet.foto ? <img src={pet.foto} alt={pet.nome} crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <PawPrint style={{ width: 60, height: 60, color: "#ccc" }} />}
+                        <div style={{
+                          width: IMG_SIZE, height: IMG_SIZE,
+                          backgroundColor: "#fff",
+                          border: "2px solid rgba(74,110,88,0.5)",
+                          borderRadius: 3,
+                          overflow: "hidden",
+                          flexShrink: 0,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+                        }}>
+                          {pet.foto
+                            ? <img src={pet.foto} alt={pet.nome} crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : <PawPrint style={{ width: 60, height: 60, color: "#ccc" }} />
+                          }
                         </div>
+
+                        {/* Linha de assinatura */}
+                        <div style={{ width: IMG_SIZE, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                          <div style={{ width: "100%", height: 1, backgroundColor: "rgba(26,26,26,0.4)" }} />
+                          <span style={{ fontSize: 8, fontWeight: 700, color: "#333", textTransform: "uppercase", fontFamily: "Arial, sans-serif", letterSpacing: 1 }}>• ASSINATURA DO TUTOR</span>
+                        </div>
+
                         {/* QR Code */}
-                        <div style={{ width: 170, height: 170, backgroundColor: "#fff", border: "1px solid #aaa", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", overflow: "hidden" }}>
-                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.06 }}>
+                        <div style={{
+                          width: IMG_SIZE, height: IMG_SIZE,
+                          backgroundColor: "#fff",
+                          border: "2px solid rgba(74,110,88,0.5)",
+                          borderRadius: 3,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0,
+                          position: "relative", overflow: "hidden",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.15)"
+                        }}>
+                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.05 }}>
                             <PawPrint style={{ width: 120, height: 120, color: "#000" }} />
                           </div>
-                          <QRCodeSVG value={`https://registrarpet.com/consulta/${pet.registroId}`} size={152} level="M" fgColor="#1a1a1a" style={{ position: "relative", zIndex: 1 }} />
+                          <QRCodeSVG
+                            value={`https://registrarpet.com/consulta/${pet.registroId}`}
+                            size={IMG_SIZE - 20}
+                            level="M"
+                            fgColor="#1a1a1a"
+                            style={{ position: "relative", zIndex: 1 }}
+                          />
                         </div>
+
                       </div>
-                      <VText w={20} h={HH} size={9.5} weight={700} rotate={-90} spacing={1}>• ASSINATURA</VText>
                     </div>
+
+                    {/* Texto lateral direito da metade esquerda */}
+                    <VText w={22} h={HH} size={8} weight={650} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
                   </div>
 
                   {/* DIVISÓRIA */}
