@@ -180,7 +180,10 @@ const RGPage = () => {
                           <QRCodeSVG value={`https://registrarpet.com/consulta/${pet.registroId}`} size={152} level="M" fgColor="#1a1a1a" style={{ position: "relative", zIndex: 1 }} />
                         </div>
                       </div>
-                      <VText w={20} h={HH} size={9.5} weight={700} rotate={-90} spacing={1}>• ASSINATURA</VText>
+                      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "flex-end", padding: "0 6px" }}>
+                        <VText w={20} h={HH} size={9.5} weight={700} rotate={-90} spacing={1}>• ASSINATURA</VText>
+                        <div style={{ height: HH - 40, width: 1.5, backgroundColor: "rgba(26,26,26,0.6)", marginLeft: 4 }} />
+                      </div>
                     </div>
                   </div>
 
@@ -211,7 +214,10 @@ const RGPage = () => {
 
                     </div>
 
-                    <VText w={20} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", gap: 4, height: HH, paddingBottom: 6 }}>
+                      <VText w={30} h={HH - 50} size={14} weight={900} rotate={90} spacing={0}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
+                      <VText w={14} h={HH - 50} size={6} weight={700} rotate={90} spacing={0.3}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
+                    </div>
                   </div>
 
                 </div>
