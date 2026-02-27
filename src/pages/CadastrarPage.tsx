@@ -251,7 +251,7 @@ const CadastrarPage = () => {
       return;
     }
     const petData: PetData = { ...formData, foto, registroId: generateId() };
-    navigate("/rg", { state: { pet: petData } });
+    navigate("/documentos", { state: { pet: petData } });
   };
 
   // ── Progress ──────────────────────────────────────────────
