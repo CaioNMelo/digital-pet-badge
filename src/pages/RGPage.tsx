@@ -156,17 +156,21 @@ const RGPage = () => {
                     {/* Faixa lateral esquerda — "REGISTRADO POR..." como borda fina */}
                     <VText w={20} h={HH} size={7.5} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
 
-                    {/* Área interna flex */}
-                    <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "stretch", padding: "18px 12px 18px 8px", gap: 0, overflow: "hidden" }}>
+                    {/* Área interna flex com layout vertical (coluna) para pôr o título no topo e o resto no meio */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "18px 12px 18px 8px", gap: 0, overflow: "hidden" }}>
 
-                      {/* Bloco de títulos verticais CENTRALIZADOS */}
+                      {/* Títulos HORIZONTAIS Cima/Centro (Topo da metade esquerda) */}
                       <div style={{
                         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                        borderRight: "1.5px solid rgba(74,110,88,0.25)",
-                        paddingRight: 8, marginRight: 20, gap: 5, flexShrink: 0,
+                        paddingBottom: 16, borderBottom: "1.5px solid rgba(74,110,88,0.25)",
+                        marginBottom: 16, flexShrink: 0, width: "100%", textTransform: "uppercase"
                       }}>
-                        <VText w={36} h={HH - 40} size={16} weight={800} rotate={-90} spacing={0.2}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
-                        <VText w={14} h={HH - 40} size={7} weight={700} rotate={-90} spacing={0.5}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
+                        <span style={{ fontSize: 16, fontWeight: 800, color: "#1a1a1a", letterSpacing: 0.2, fontFamily: "Arial, sans-serif" }}>
+                          Registro dos Animais do Brasil
+                        </span>
+                        <span style={{ fontSize: 7, fontWeight: 700, color: "#1a1a1a", letterSpacing: 0.5, fontFamily: "Arial, sans-serif", marginTop: 4 }}>
+                          ATRAVES DO SITE WWW.REGISTRAPET.PET
+                        </span>
                       </div>
 
                       {/* Coluna central: Foto -> Assinatura (Horizontal) -> QR Code */}
