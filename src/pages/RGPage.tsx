@@ -151,82 +151,75 @@ const RGPage = () => {
                 <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", gap: 6, padding: 10 }}>
 
                   {/* METADE ESQUERDA */}
-                  <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
+                  <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden", position: "relative" }}>
 
-                    {/* Faixa lateral esquerda — "REGISTRADO POR..." como borda fina */}
-                    <VText w={20} h={HH} size={7.5} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    {/* FAIXA ESQUERDA: Textos "REGISTRADO POR", "REGISTRO DOS ANIMAIS" */}
+                    <div style={{
+                      display: "flex", flexDirection: "row", alignItems: "center",
+                      backgroundColor: "rgba(0,0,0,0.03)", // Suave destaque de fundo, opcional
+                      borderRight: "1.5px solid rgba(74,110,88,0.25)",
+                      padding: "16px 4px",
+                      gap: 4
+                    }}>
+                      <VText w={16} h={HH} size={7} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
 
-                    {/* Área interna com padding generoso para tirar o efeito de 'colado na parede' */}
-                    <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "stretch", padding: "18px 12px 18px 8px", gap: 0, overflow: "hidden" }}>
-
-                      {/* Bloco de títulos verticais — margin-right maior para empurrar a foto ao centro */}
-                      <div style={{
-                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                        borderRight: "1.5px solid rgba(74,110,88,0.25)",
-                        paddingRight: 8, marginRight: 20, gap: 5, flexShrink: 0,
-                      }}>
-                        <VText w={36} h={HH - 80} size={16} weight={800} rotate={-90} spacing={0.2}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
-                        <VText w={14} h={HH - 80} size={7} weight={700} rotate={-90} spacing={0.5}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
-                      </div>
-
-                      {/* Coluna central: foto + assinatura + QR — agora com mais respiro */}
-                      <div style={{
-                        flex: 1,
-                        display: "flex", flexDirection: "column",
-                        alignItems: "center", justifyContent: "center",
-                        gap: 12,
-                        padding: "0 10px",
-                      }}>
-
-                        {/* Foto */}
-                        <div style={{
-                          width: IMG_SIZE, height: IMG_SIZE,
-                          backgroundColor: "#fff",
-                          border: "1.5px solid rgba(74,110,88,0.6)",
-                          borderRadius: 4,
-                          overflow: "hidden", flexShrink: 0,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
-                        }}>
-                          {pet.foto
-                            ? <img src={pet.foto} alt={pet.nome} crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            : <PawPrint style={{ width: 60, height: 60, color: "#aaa" }} />
-                          }
-                        </div>
-
-                        {/* Linha de assinatura */}
-                        <div style={{ width: IMG_SIZE, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, paddingTop: 4 }}>
-                          <div style={{ width: "100%", height: 1.5, backgroundColor: "rgba(26,26,26,0.4)" }} />
-                          <span style={{ fontSize: 8, fontWeight: 700, color: "#333", textTransform: "uppercase", fontFamily: "Arial, sans-serif", letterSpacing: 1.5 }}>• ASSINATURA DO TUTOR</span>
-                        </div>
-
-                        {/* QR Code */}
-                        <div style={{
-                          width: IMG_SIZE, height: IMG_SIZE,
-                          backgroundColor: "#fff",
-                          border: "1.5px solid rgba(74,110,88,0.6)",
-                          borderRadius: 4,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          flexShrink: 0, position: "relative", overflow: "hidden",
-                          boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
-                        }}>
-                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.05 }}>
-                            <PawPrint style={{ width: 115, height: 115, color: "#000" }} />
-                          </div>
-                          <QRCodeSVG
-                            value={`https://registrarpet.com/consulta/${pet.registroId}`}
-                            size={IMG_SIZE - 24}
-                            level="M"
-                            fgColor="#1a1a1a"
-                            style={{ position: "relative", zIndex: 1 }}
-                          />
-                        </div>
-
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, width: 44 }}>
+                        <VText w={24} h={HH - 40} size={15} weight={800} rotate={-90} spacing={0.2}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
+                        <VText w={14} h={HH - 40} size={6.5} weight={700} rotate={-90} spacing={0.5}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
                       </div>
                     </div>
 
-                    {/* Faixa lateral direita da metade esquerda */}
-                    <VText w={20} h={HH} size={7.5} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    {/* ÁREA CENTRAL: Blocos de Imagem (Foto em cima, QR embaixo) */}
+                    <div style={{
+                      flex: 1,
+                      display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "space-evenly",
+                      padding: "20px 0"
+                    }}>
+                      {/* Foto */}
+                      <div style={{
+                        width: 200, height: 200,
+                        backgroundColor: "#fff",
+                        border: "2px solid #555", // Borda mais forte como na referência
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        overflow: "hidden"
+                      }}>
+                        {pet.foto
+                          ? <img src={pet.foto} alt={pet.nome} crossOrigin="anonymous" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          : <PawPrint style={{ width: 60, height: 60, color: "#aaa" }} />
+                        }
+                      </div>
+
+                      {/* QR Code */}
+                      <div style={{
+                        width: 200, height: 200,
+                        backgroundColor: "#fff",
+                        border: "2px solid #555",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        position: "relative", overflow: "hidden"
+                      }}>
+                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.05 }}>
+                          <PawPrint style={{ width: 140, height: 140, color: "#000" }} />
+                        </div>
+                        <QRCodeSVG
+                          value={`https://registrarpet.com/consulta/${pet.registroId}`}
+                          size={180}
+                          level="M"
+                          fgColor="#1a1a1a"
+                          style={{ position: "relative", zIndex: 1 }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* FAIXA DIREITA (próxima à divisória): Texto de Assinatura e "REGISTRADO POR" */}
+                    <div style={{
+                      display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+                      padding: "16px 6px", width: 40
+                    }}>
+                      <VText w={16} h={HH} size={9} weight={700} rotate={-90} spacing={1}>• ASSINATURA</VText>
+                      <VText w={16} h={HH} size={7} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    </div>
+
                   </div>
 
                   {/* DIVISÓRIA */}
