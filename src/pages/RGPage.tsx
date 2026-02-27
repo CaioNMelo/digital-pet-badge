@@ -29,55 +29,26 @@ const VText = ({ children, w, h, size = 9, weight = 700, rotate = -90, spacing =
   </div>
 );
 
-// FieldCol: coluna vertical de campo para o RG.
-// Usa flexDirection:ROW (label | divisória vertical | valor) antes de rotacionar -90°.
-// Depois da rotação: label fica no extremo visível de um lado, valor no outro.
+// Coluna de campo vertical: label + linha + valor, rodado -90°
+// colH = altura do container = comprimento disponível para o texto após rotação
 const FieldCol = ({ label, value, colH, flexVal = 1 }: {
   label: string; value: string; colH: number; flexVal?: number;
 }) => (
-  <div style={{
-    flex: flexVal,
-    height: colH,
-    overflow: "hidden",
-    borderRight: "1px solid rgba(74,104,88,0.22)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  }}>
-    {/* Largura = colH-12 → após rotate(-90°) vira altura visual, preenchendo o strip */}
+  <div style={{ flex: flexVal, height: colH, position: "relative", overflow: "hidden", borderRight: "1px solid rgba(74,104,88,0.22)" }}>
+    {/* O div interno tem largura = colH para que o texto caiba após rotate(-90deg) */}
     <div style={{
-      width: colH - 12,
-      flexShrink: 0,
-      transform: "rotate(-90deg)",
-      transformOrigin: "center center",
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
+      position: "absolute", top: "50%", left: "50%",
+      width: colH - 20,
+      transform: "translate(-50%, -50%) rotate(-90deg)",
+      display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, padding: "0 4px",
     }}>
-      {/* Label — posição esquerda no row → extremo inferior do strip após rotação */}
-      <div style={{ flexShrink: 0, paddingRight: 5 }}>
-        <span style={{
-          fontSize: 9, fontWeight: 800, color: "#1a1a1a",
-          textTransform: "uppercase", fontFamily: "Arial, sans-serif",
-          whiteSpace: "nowrap", lineHeight: 1, letterSpacing: 0.5,
-          display: "block",
-        }}>
-          {label}
-        </span>
-      </div>
-      {/* Divisória vertical → após rotação fica horizontal separando label do valor */}
-      <div style={{ width: 1.5, height: 22, backgroundColor: "#444", flexShrink: 0 }} />
-      {/* Valor — posição direita no row → extremo superior do strip após rotação */}
-      <div style={{ flex: 1, paddingLeft: 5, overflow: "hidden" }}>
-        <span style={{
-          fontSize: 11, fontWeight: 700, color: "#111",
-          textTransform: "uppercase", fontFamily: "Arial, sans-serif",
-          whiteSpace: "nowrap", lineHeight: 1,
-          display: "block", overflow: "hidden", textOverflow: "ellipsis",
-        }}>
-          {value || "\u00A0"}
-        </span>
-      </div>
+      <span style={{ fontSize: 7, fontWeight: 700, color: "#2a2a2a", textTransform: "uppercase", fontFamily: "Arial, sans-serif", whiteSpace: "nowrap", lineHeight: 1, letterSpacing: 0.3 }}>
+        {label}
+      </span>
+      <div style={{ width: "100%", height: 1.5, backgroundColor: "#444", flexShrink: 0 }} />
+      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#111", textTransform: "uppercase", fontFamily: "Arial, sans-serif", whiteSpace: "nowrap", lineHeight: 1, overflow: "hidden", maxWidth: "100%", textOverflow: "ellipsis" }}>
+        {value || "\u00A0"}
+      </span>
     </div>
   </div>
 );
@@ -86,12 +57,7 @@ const RGPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
-  // Inicializa o scale imediatamente (lazy) para evitar flash de scroll no primeiro render
-  const [scale, setScale] = useState(() => {
-    if (typeof window === "undefined") return 1;
-    const avail = window.innerWidth - 32;
-    return avail < 960 ? avail / 960 : 1;
-  });
+  const [scale, setScale] = useState(1);
   const pet = (location.state as { pet: PetData })?.pet;
 
   useEffect(() => {
@@ -99,6 +65,7 @@ const RGPage = () => {
       const avail = window.innerWidth - 32;
       setScale(avail < 960 ? avail / 960 : 1);
     };
+    update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
@@ -156,7 +123,7 @@ const RGPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-muted/50 overflow-x-hidden">
+    <div className="min-h-screen bg-muted/50">
       <header className="bg-background/80 backdrop-blur-md border-b sticky top-0 z-50 print:hidden">
         <div className="container mx-auto flex items-center gap-4 h-16 px-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}><ArrowLeft className="w-5 h-5" /></Button>
@@ -167,16 +134,16 @@ const RGPage = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-10 max-w-5xl overflow-x-hidden">
+      <main className="container mx-auto px-4 py-10 max-w-5xl">
         <div className="text-center mb-8 print:hidden">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-semibold mb-4">✅ Registro concluído</div>
           <h1 className="text-3xl font-heading font-bold text-foreground mb-2">RG Digital do Pet</h1>
           <p className="text-muted-foreground">Documento de <strong className="text-foreground">{pet.nome}</strong> pronto para download/impressão.</p>
         </div>
 
-        {/* Container responsivo com scale automático — overflow:hidden evita scrollbar */}
-        <div className="flex justify-center w-full mb-6 overflow-hidden">
-          <div style={{ width: CW * scale, height: CH * scale, position: "relative", overflow: "hidden" }}>
+        {/* Container responsivo com scale automático */}
+        <div className="flex justify-center w-full mb-6">
+          <div style={{ width: CW * scale, height: CH * scale, position: "relative", flexShrink: 0 }}>
             <div style={{ position: "absolute", top: 0, left: 0, transformOrigin: "top left", transform: `scale(${scale})`, width: CW, height: CH }}>
 
               {/* CARD RG */}
