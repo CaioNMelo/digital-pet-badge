@@ -151,7 +151,7 @@ const RGPage = () => {
                 <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", gap: 6, padding: 10 }}>
 
                   {/* METADE ESQUERDA */}
-                  <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden", position: "relative" }}>
+                  <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
 
                     {/* Faixa lateral esquerda — "REGISTRADO POR..." como borda fina */}
                     <VText w={20} h={HH} size={7.5} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
@@ -159,23 +159,23 @@ const RGPage = () => {
                     {/* Área interna flex */}
                     <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "stretch", padding: "18px 12px 18px 8px", gap: 0, overflow: "hidden" }}>
 
-                      {/* Bloco de títulos verticais CENTRALIZADOS (como em RGs reais) */}
+                      {/* Bloco de títulos verticais CENTRALIZADOS */}
                       <div style={{
                         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                         borderRight: "1.5px solid rgba(74,110,88,0.25)",
                         paddingRight: 8, marginRight: 20, gap: 5, flexShrink: 0,
                       }}>
-                        {/* Como estão centralizados usando justifyContent:center, não precisam definir height forçada com HH-40 */}
-                        <VText w={36} h={HH} size={16} weight={800} rotate={-90} spacing={0.2}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
-                        <VText w={14} h={HH} size={7} weight={700} rotate={-90} spacing={0.5}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
+                        <VText w={36} h={HH - 40} size={16} weight={800} rotate={-90} spacing={0.2}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
+                        <VText w={14} h={HH - 40} size={7} weight={700} rotate={-90} spacing={0.5}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
                       </div>
 
                       {/* Coluna central: Foto -> Assinatura (Horizontal) -> QR Code */}
                       <div style={{
                         flex: 1,
                         display: "flex", flexDirection: "column",
-                        alignItems: "center", justifyContent: "space-between", // Espalha as 3 sessões
-                        padding: "4px 10px",
+                        alignItems: "center", justifyContent: "center",
+                        gap: 12,
+                        padding: "0 10px",
                       }}>
 
                         {/* Foto */}
@@ -196,13 +196,13 @@ const RGPage = () => {
 
                         {/* Linha de assinatura HORIZONTAL no meio */}
                         <div style={{
-                          width: IMG_SIZE + 10, // Um pouco mais larga que a foto/QR
+                          width: IMG_SIZE,
                           display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                          marginTop: 8, marginBottom: 8
+                          paddingTop: 4, paddingBottom: 4
                         }}>
-                          <div style={{ width: "100%", height: 1.5, backgroundColor: "rgba(26,26,26,0.6)" }} />
-                          <span style={{ fontSize: 8.5, fontWeight: 700, color: "#222", textTransform: "uppercase", fontFamily: "Arial, sans-serif", letterSpacing: 1.5 }}>
-                            ASSINATURA
+                          <div style={{ width: "100%", height: 1.5, backgroundColor: "rgba(26,26,26,0.5)" }} />
+                          <span style={{ fontSize: 8, fontWeight: 700, color: "#333", textTransform: "uppercase", fontFamily: "Arial, sans-serif", letterSpacing: 1.5 }}>
+                            ASSINATURA DO TUTOR
                           </span>
                         </div>
 
@@ -238,46 +238,47 @@ const RGPage = () => {
                   {/* DIVISÓRIA */}
                   <div style={{ width: 8, display: "flex", alignItems: "stretch", justifyContent: "center", opacity: 0.3 }}>
                     <div style={{ width: 1, borderLeft: "2px dashed rgba(0,0,0,0.5)", height: "100%" }} />
+                  </div>
 
-                    {/* METADE DIREITA */}
-                    <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
-                      <div style={{ borderRight: "1px solid rgba(74,110,88,0.25)", flexShrink: 0, marginRight: 8 }}>
-                        <VText w={30} h={HH} size={9} weight={700} rotate={-90} spacing={1.5}>CARTEIRA DE IDENTIDADE ANIMAL</VText>
-                      </div>
-
-                      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", paddingLeft: 20, paddingRight: 8 }}>
-                        <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch", borderBottom: "2px solid rgba(74,110,88,0.4)" }}>
-                          {grupo1.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo1.length - 1} />)}
-                        </div>
-                        <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch" }}>
-                          {grupo2.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo2.length - 1} />)}
-                        </div>
-                      </div>
-
-                      <VText w={24} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                  {/* METADE DIREITA */}
+                  <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
+                    <div style={{ borderRight: "1px solid rgba(74,110,88,0.25)", flexShrink: 0, marginRight: 8 }}>
+                      <VText w={30} h={HH} size={9} weight={700} rotate={-90} spacing={1.5}>CARTEIRA DE IDENTIDADE ANIMAL</VText>
                     </div>
 
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", paddingLeft: 20, paddingRight: 8 }}>
+                      <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch", borderBottom: "2px solid rgba(74,110,88,0.4)" }}>
+                        {grupo1.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo1.length - 1} />)}
+                      </div>
+                      <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch" }}>
+                        {grupo2.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo2.length - 1} />)}
+                      </div>
+                    </div>
+
+                    <VText w={24} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
                   </div>
+
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Botões */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-4 max-w-[600px] mx-auto print:hidden">
-            <Button variant="hero" size="lg" className="flex-1 h-14" onClick={handleDownloadPDF}>
-              <Download className="w-5 h-5 mr-1" />Baixar RG em PDF (A4)
+        {/* Botões */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-4 max-w-[600px] mx-auto print:hidden">
+          <Button variant="hero" size="lg" className="flex-1 h-14" onClick={handleDownloadPDF}>
+            <Download className="w-5 h-5 mr-1" />Baixar RG em PDF (A4)
+          </Button>
+          {navigator.share && (
+            <Button variant="outline" size="lg" className="h-14" onClick={handleShare}>
+              <Share2 className="w-5 h-5 mr-1" />Compartilhar
             </Button>
-            {navigator.share && (
-              <Button variant="outline" size="lg" className="h-14" onClick={handleShare}>
-                <Share2 className="w-5 h-5 mr-1" />Compartilhar
-              </Button>
-            )}
-          </div>
+          )}
+        </div>
 
-          <div className="text-center mt-6 print:hidden">
-            <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>+ Cadastrar outro pet</Button>
-          </div>
+        <div className="text-center mt-6 print:hidden">
+          <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>+ Cadastrar outro pet</Button>
+        </div>
       </main>
     </div>
   );
