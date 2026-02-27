@@ -6,6 +6,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
 
+// npm install html-to-image
+
 interface PetData {
   nome: string;
   foto: string;
@@ -29,16 +31,10 @@ const speciesLabel: Record<string, string> = {
   outro: "Outro",
 };
 
-// ─────────────────────────────────────────────────────────────
-// IMPORTANTE: NÃO usar writing-mode em NENHUM elemento.
-// Apenas transform: rotate(). O html2canvas renderiza rotate
-// corretamente mas NÃO renderiza writing-mode.
-// ─────────────────────────────────────────────────────────────
-
 /**
- * Caixa com texto rotacionado usando APENAS transform: rotate.
- * containerW e containerH são as dimensões VISUAIS do bloco na tela.
- * O span interno tem width = containerH para o texto caber na rotação.
+ * Texto vertical: usa APENAS transform:rotate — sem writing-mode.
+ * w = largura do container (espessura da faixa)
+ * h = altura do container
  */
 const VText = ({
   children,
@@ -51,11 +47,11 @@ const VText = ({
   spacing = 0,
 }: {
   children: string;
-  w: number;   // largura visual do container (= espessura da faixa)
-  h: number;   // altura visual do container
+  w: number;
+  h: number;
   size?: number;
   weight?: number;
-  rotate?: number; // -90 = de baixo pra cima, 90 = de cima pra baixo
+  rotate?: number;
   color?: string;
   spacing?: number;
 }) => (
@@ -81,7 +77,6 @@ const VText = ({
         letterSpacing: spacing,
         textTransform: "uppercase",
         fontFamily: "Arial, Helvetica, sans-serif",
-        // Gira em torno do centro. width = h para o texto ter espaço suficiente.
         width: h,
         textAlign: "center",
         transform: `rotate(${rotate}deg)`,
@@ -94,61 +89,98 @@ const VText = ({
   </div>
 );
 
-/** Campo label + underline + valor */
-const F = ({
+/**
+ * Campo vertical individual — igual ao modelo de referência.
+ * Cada campo é uma coluna: label em cima, linha horizontal, valor embaixo.
+ * Tudo rotacionado -90deg dentro de um container de largura fixa.
+ */
+const FieldCol = ({
   label,
   value,
-  flex = 1,
-  vSize = 12,
+  colW = 42,
+  colH,
+  labelSize = 8,
+  valueSize = 11,
 }: {
   label: string;
   value: string;
-  flex?: number;
-  vSize?: number;
+  colW?: number;
+  colH: number;
+  labelSize?: number;
+  valueSize?: number;
 }) => (
   <div
     style={{
+      width: colW,
+      height: colH,
+      flexShrink: 0,
+      position: "relative",
+      overflow: "hidden",
       display: "flex",
-      alignItems: "flex-end",
-      gap: 5,
-      flex,
-      minWidth: 0,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRight: "1px solid rgba(74,104,88,0.25)",
     }}
   >
-    <span
+    {/*
+      O truque: um div interno rotacionado com width = colH (a altura do container).
+      Dentro dele: label + linha + valor dispostos horizontalmente,
+      mas como o div está rotacionado -90deg, aparecem verticalmente.
+    */}
+    <div
       style={{
-        fontSize: 9,
-        fontWeight: 700,
-        color: "#111",
-        whiteSpace: "nowrap",
-        flexShrink: 0,
-        fontFamily: "Arial, Helvetica, sans-serif",
-        lineHeight: 1,
-        paddingBottom: 2,
-        textTransform: "uppercase",
+        position: "absolute",
+        width: colH,           // largura do span = altura do container
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        gap: 3,
+        transform: "rotate(-90deg)",
+        transformOrigin: "center center",
+        padding: "0 6px",
       }}
     >
-      {label}
-    </span>
-    <span
-      style={{
-        flex: 1,
-        borderBottom: "1.5px solid #444",
-        fontSize: vSize,
-        fontWeight: 700,
-        color: "#111",
-        textTransform: "uppercase",
-        fontFamily: "Arial, Helvetica, sans-serif",
-        paddingBottom: 1,
-        lineHeight: 1,
-        minWidth: 0,
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {value || "\u00A0"}
-    </span>
+      {/* Label */}
+      <span
+        style={{
+          fontSize: labelSize,
+          fontWeight: 700,
+          color: "#1a1a1a",
+          textTransform: "uppercase",
+          fontFamily: "Arial, Helvetica, sans-serif",
+          lineHeight: 1,
+          letterSpacing: 0.3,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </span>
+      {/* Linha */}
+      <div
+        style={{
+          width: "100%",
+          height: 1,
+          backgroundColor: "#555",
+        }}
+      />
+      {/* Valor */}
+      <span
+        style={{
+          fontSize: valueSize,
+          fontWeight: 700,
+          color: "#1a1a1a",
+          textTransform: "uppercase",
+          fontFamily: "Arial, Helvetica, sans-serif",
+          lineHeight: 1,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          maxWidth: "100%",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {value || "\u00A0"}
+      </span>
+    </div>
   </div>
 );
 
@@ -173,7 +205,7 @@ const RGPage = () => {
   }
 
   const formatDate = (date: string) => {
-    if (!date) return "Nao informado";
+    if (!date) return "";
     const [y, m, d] = date.split("-");
     return `${d}/${m}/${y}`;
   };
@@ -184,30 +216,24 @@ const RGPage = () => {
     ? pet.endereco.includes(" - ")
       ? pet.endereco.split(" - ")[1].trim()
       : pet.endereco
-    : "Nao informado";
+    : "";
 
   const handleDownloadPDF = async () => {
     if (!cardRef.current) return;
 
-    // html-to-image respeita nativamente transform:rotate() e CSS transforms
-    // ao contrário do html2canvas que não renderiza corretamente
     const imgData = await toJpeg(cardRef.current, {
       quality: 0.97,
-      pixelRatio: 3, // alta resolução
+      pixelRatio: 3,
       backgroundColor: "#ffffff",
-      fetchRequestInit: { cache: "no-cache" }, // evita CORS em imagens
+      fetchRequestInit: { cache: "no-cache" },
       skipFonts: false,
     });
 
-    // Calcula dimensões para caber em A4 paisagem (297x210 mm) com margem de 8mm
     const pdfW = 297;
     const pdfH = 210;
-    const printW = pdfW - 16; // 8mm de margem em cada lado
-
-    // Mantém a proporção real do card (960x600)
-    const cardAspect = 600 / 960;
+    const printW = pdfW - 16;
+    const cardAspect = CH / CW;
     const printH = printW * cardAspect;
-
     const x = 8;
     const y = printH < pdfH ? (pdfH - printH) / 2 : 4;
 
@@ -225,10 +251,36 @@ const RGPage = () => {
     }
   };
 
-  // Dimensões fixas do card
-  const CW = 960; // card width px
-  const CH = 600; // card height px
-  const HH = CH - 24; // altura útil das metades
+  const CW = 960;
+  const CH = 600;
+  const HH = CH - 24;
+
+  // Campos do lado direito — ordem igual ao modelo de referência
+  // Grupo esquerdo (de baixo pra cima no modelo): NOME, NASCIMENTO, NATURALIDADE, SEXO, CASTRADO, TUTORES
+  // Grupo direito (de baixo pra cima): NUM.REGISTRO, DATA EXPEDICAO, ESPECIE, RACA, PORTE, PELAGEM
+  const camposEsquerda = [
+    { label: "NOME", value: pet.nome },
+    { label: "NASCIMENTO", value: formatDate(pet.dataNascimento) },
+    { label: "NATURALIDADE", value: naturalidade },
+    { label: "SEXO", value: pet.sexo },
+    { label: "CASTRADO", value: "A VERIFICAR" },
+    { label: "TUTORES", value: pet.nomeTutor },
+  ];
+
+  const camposDireita = [
+    { label: "NUMERO DE REGISTRO", value: pet.registroId },
+    { label: "DATA DE EXPEDICAO", value: today },
+    { label: "ESPECIE", value: speciesLabel[pet.especie] || pet.especie },
+    { label: "RACA", value: pet.raca || "SRD" },
+    { label: "PORTE", value: "" },
+    { label: "PELAGEM", value: pet.corPredominante || "" },
+  ];
+
+  // Largura de cada coluna de campo
+  // Lado direito tem 2 grupos de 6 campos
+  // Largura disponível para campos = (CW/2) - bordas - padding ≈ 380px
+  // 12 campos × colW = 380 → colW ≈ 31px
+  const COL_W = 31;
 
   return (
     <div className="min-h-screen bg-muted/50">
@@ -255,24 +307,14 @@ const RGPage = () => {
             RG Digital do Pet
           </h1>
           <p className="text-muted-foreground">
-            Documento de{" "}
-            <strong className="text-foreground">{pet.nome}</strong> pronto para
-            download/impressão.
+            Documento de <strong className="text-foreground">{pet.nome}</strong> pronto para download/impressão.
           </p>
         </div>
 
         <div className="overflow-x-auto pb-4">
-          <div
-            style={{
-              minWidth: CW,
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            {/* ══════════════════════════════════════
-                CARD DO RG — tudo inline style
-                Nenhum writing-mode em nenhum lugar!
-            ══════════════════════════════════════ */}
+          <div style={{ minWidth: CW, display: "flex", justifyContent: "center" }}>
+
+            {/* ══════════════ CARD RG ══════════════ */}
             <div
               ref={cardRef}
               style={{
@@ -288,17 +330,18 @@ const RGPage = () => {
                 boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
               }}
             >
-              {/* Moldura verde escura */}
+              {/* Moldura verde escura com padrão patinhas */}
               <div
                 style={{
                   position: "absolute",
                   inset: 8,
                   borderRadius: 6,
                   backgroundColor: "#4a6e58",
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 2c-1.6 0-3 1.5-3 3s1.4 3 3 3 3-1.5 3-3-1.4-3-3-3zM5.5 6C4.1 6 3 7.5 3 9s1.1 3 2.5 3S8 10.5 8 9 6.9 6 5.5 6zm13 0c-1.4 0-2.5 1.5-2.5 3s1.1 3 2.5 3S21 10.5 21 9s-1.1-3-2.5-3zM12 13c-2.4 0-4.5 1.5-5.5 3.5-.5 1 .2 2 1.2 2 .5 0 1-.2 1.5-.4 1-.5 2-.5 2.8-.5s1.8 0 2.8.5c.5.2 1 .4 1.5.4 1 0 1.7-1 1.2-2C16.5 14.5 14.4 13 12 13z' fill='%23ffffff' fill-opacity='0.1'/%3E%3C/svg%3E")`,
                 }}
               />
 
-              {/* Conteúdo (2 metades) */}
+              {/* Duas metades */}
               <div
                 style={{
                   position: "relative",
@@ -309,7 +352,8 @@ const RGPage = () => {
                   padding: 10,
                 }}
               >
-                {/* ═══ METADE ESQUERDA ═══ */}
+
+                {/* ═══════════ METADE ESQUERDA ═══════════ */}
                 <div
                   style={{
                     flex: 1,
@@ -319,12 +363,12 @@ const RGPage = () => {
                     overflow: "hidden",
                   }}
                 >
-                  {/* Faixa borda esq */}
+                  {/* Borda esq */}
                   <VText w={22} h={HH} size={8} weight={700} rotate={-90} spacing={0.4}>
                     REGISTRADO POR WWW.REGISTRAPET.PET
                   </VText>
 
-                  {/* Área central */}
+                  {/* Conteúdo */}
                   <div
                     style={{
                       flex: 1,
@@ -334,7 +378,7 @@ const RGPage = () => {
                       gap: 6,
                     }}
                   >
-                    {/* Título + subtítulo */}
+                    {/* Títulos verticais */}
                     <div
                       style={{
                         display: "flex",
@@ -385,17 +429,11 @@ const RGPage = () => {
                           <img
                             src={pet.foto}
                             alt={pet.nome}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
                             crossOrigin="anonymous"
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
                           />
                         ) : (
-                          <PawPrint
-                            style={{ width: 60, height: 60, color: "#ccc" }}
-                          />
+                          <PawPrint style={{ width: 60, height: 60, color: "#ccc" }} />
                         )}
                       </div>
 
@@ -424,9 +462,7 @@ const RGPage = () => {
                             opacity: 0.06,
                           }}
                         >
-                          <PawPrint
-                            style={{ width: 120, height: 120, color: "#000" }}
-                          />
+                          <PawPrint style={{ width: 120, height: 120, color: "#000" }} />
                         </div>
                         <QRCodeSVG
                           value={`https://registrarpet.com/consulta/${pet.registroId}`}
@@ -445,7 +481,7 @@ const RGPage = () => {
                   </div>
                 </div>
 
-                {/* ═══ DIVISÓRIA ═══ */}
+                {/* ═══════════ DIVISÓRIA ═══════════ */}
                 <div
                   style={{
                     width: 8,
@@ -464,7 +500,7 @@ const RGPage = () => {
                   />
                 </div>
 
-                {/* ═══ METADE DIREITA ═══ */}
+                {/* ═══════════ METADE DIREITA ═══════════ */}
                 <div
                   style={{
                     flex: 1,
@@ -474,93 +510,95 @@ const RGPage = () => {
                     overflow: "hidden",
                   }}
                 >
-                  {/* Borda esq: Carteira */}
-                  <div
-                    style={{
-                      borderRight: "1px solid rgba(74,110,88,0.25)",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <VText w={26} h={HH} size={9} weight={700} rotate={-90} spacing={1.5}>
-                      CARTEIRA DE IDENTIDADE ANIMAL
-                    </VText>
-                  </div>
+                  {/* Borda esq: REGISTRADO POR */}
+                  <VText w={22} h={HH} size={8} weight={700} rotate={-90} spacing={0.4}>
+                    REGISTRADO POR WWW.REGISTRAPET.PET
+                  </VText>
 
-                  {/* Campos */}
+                  {/* Separador vertical fino */}
+                  <div style={{ width: 1, backgroundColor: "rgba(74,110,88,0.3)", flexShrink: 0 }} />
+
+                  {/* CARTEIRA DE IDENTIDADE ANIMAL */}
+                  <VText w={22} h={HH} size={8.5} weight={700} rotate={-90} spacing={1}>
+                    CARTEIRA DE IDENTIDADE ANIMAL
+                  </VText>
+
+                  {/* Separador */}
+                  <div style={{ width: 1, backgroundColor: "rgba(74,110,88,0.3)", flexShrink: 0 }} />
+
+                  {/* ── GRUPO ESQUERDO de campos ── */}
                   <div
                     style={{
                       flex: 1,
                       display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      gap: 18,
-                      padding: "16px 8px 16px 14px",
-                      minWidth: 0,
+                      flexDirection: "row",
+                      alignItems: "stretch",
                     }}
                   >
-                    {/* NOME */}
-                    <F label="NOME" value={pet.nome} flex={1} vSize={15} />
-
-                    {/* NASCIMENTO + Nº REGISTRO */}
-                    <div style={{ display: "flex", gap: 12 }}>
-                      <F label="NASCIMENTO" value={formatDate(pet.dataNascimento)} flex={1} />
-                      <F label="No REGISTRO" value={pet.registroId} flex={1} />
-                    </div>
-
-                    {/* NATURALIDADE + EXPEDIÇÃO */}
-                    <div style={{ display: "flex", gap: 12 }}>
-                      <F label="NATURALIDADE" value={naturalidade} flex={1} />
-                      <F label="EXPEDICAO" value={today} flex={0.85} />
-                    </div>
-
-                    {/* SEXO + ESPÉCIE + RAÇA */}
-                    <div style={{ display: "flex", gap: 12 }}>
-                      <F label="SEXO" value={pet.sexo} flex={0.55} />
-                      <F label="ESPECIE" value={speciesLabel[pet.especie] || pet.especie} flex={0.7} />
-                      <F label="RACA" value={pet.raca || "SRD"} flex={1} />
-                    </div>
-
-                    {/* CASTRADO + PORTE */}
-                    <div style={{ display: "flex", gap: 12 }}>
-                      <F label="CASTRADO" value="A VERIFICAR" flex={1} />
-                      <F label="PORTE" value="________" flex={0.8} />
-                    </div>
-
-                    {/* TUTORES + PELAGEM */}
-                    <div style={{ display: "flex", gap: 12 }}>
-                      <F label="TUTORES" value={pet.nomeTutor} flex={1} />
-                      <F label="PELAGEM" value={pet.corPredominante || "________"} flex={0.8} />
-                    </div>
+                    {camposEsquerda.map((campo) => (
+                      <FieldCol
+                        key={campo.label}
+                        label={campo.label}
+                        value={campo.value}
+                        colW={COL_W}
+                        colH={HH}
+                      />
+                    ))}
                   </div>
 
-                  {/* Borda dir */}
+                  {/* Separador central entre grupos */}
+                  <div
+                    style={{
+                      width: 2,
+                      backgroundColor: "rgba(74,110,88,0.4)",
+                      flexShrink: 0,
+                    }}
+                  />
+
+                  {/* ── GRUPO DIREITO de campos ── */}
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "stretch",
+                    }}
+                  >
+                    {camposDireita.map((campo) => (
+                      <FieldCol
+                        key={campo.label}
+                        label={campo.label}
+                        value={campo.value}
+                        colW={COL_W}
+                        colH={HH}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Separador */}
+                  <div style={{ width: 1, backgroundColor: "rgba(74,110,88,0.3)", flexShrink: 0 }} />
+
+                  {/* Borda dir: REGISTRADO POR */}
                   <VText w={22} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>
                     REGISTRADO POR WWW.REGISTRAPET.PET
                   </VText>
                 </div>
+
               </div>
             </div>
+            {/* ══════════════ FIM CARD ══════════════ */}
+
           </div>
         </div>
 
         {/* Botões */}
         <div className="flex flex-col sm:flex-row gap-3 mt-8 max-w-[600px] mx-auto print:hidden">
-          <Button
-            variant="hero"
-            size="lg"
-            className="flex-1 h-14"
-            onClick={handleDownloadPDF}
-          >
+          <Button variant="hero" size="lg" className="flex-1 h-14" onClick={handleDownloadPDF}>
             <Download className="w-5 h-5 mr-1" />
             Baixar RG em PDF (A4)
           </Button>
           {navigator.share && (
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-14"
-              onClick={handleShare}
-            >
+            <Button variant="outline" size="lg" className="h-14" onClick={handleShare}>
               <Share2 className="w-5 h-5 mr-1" />
               Compartilhar
             </Button>
@@ -568,11 +606,7 @@ const RGPage = () => {
         </div>
 
         <div className="text-center mt-6 print:hidden">
-          <Button
-            variant="ghost"
-            className="text-primary"
-            onClick={() => navigate("/cadastrar")}
-          >
+          <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>
             + Cadastrar outro pet
           </Button>
         </div>
