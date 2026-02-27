@@ -1,12 +1,10 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Share2, PawPrint } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
-
-// npm install html-to-image
 
 interface PetData {
   nome: string;
@@ -38,11 +36,7 @@ const speciesLabel: Record<string, string> = {
   outro: "Outro",
 };
 
-/**
- * Texto vertical: usa APENAS transform:rotate — sem writing-mode.
- * w = largura do container (espessura da faixa)
- * h = altura do container
- */
+// ─── VText: texto rotacionado via transform:rotate (sem writing-mode) ────
 const VText = ({
   children,
   w,
@@ -96,106 +90,76 @@ const VText = ({
   </div>
 );
 
-/**
- * Campo vertical individual — igual ao modelo de referência.
- * Cada campo é uma coluna: label em cima, linha horizontal, valor embaixo.
- * Tudo rotacionado -90deg dentro de um container de largura fixa.
- */
-const FieldCol = ({
+// ─── Field: linha label + underline + valor (horizontal) ─────────────────
+const Field = ({
   label,
   value,
-  colW = 42,
-  colH,
-  labelSize = 8,
-  valueSize = 11,
+  flex = 1,
+  vSize = 11,
 }: {
   label: string;
   value: string;
-  colW?: number;
-  colH: number;
-  labelSize?: number;
-  valueSize?: number;
+  flex?: number;
+  vSize?: number;
 }) => (
-  <div
-    style={{
-      width: colW,
-      height: colH,
-      flexShrink: 0,
-      position: "relative",
-      overflow: "hidden",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      borderRight: "1px solid rgba(74,104,88,0.25)",
-    }}
-  >
-    {/*
-      O truque: um div interno rotacionado com width = colH (a altura do container).
-      Dentro dele: label + linha + valor dispostos horizontalmente,
-      mas como o div está rotacionado -90deg, aparecem verticalmente.
-    */}
-    <div
+  <div style={{ display: "flex", alignItems: "flex-end", gap: 5, flex, minWidth: 0 }}>
+    <span
       style={{
-        position: "absolute",
-        width: colH,           // largura do span = altura do container
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
-        gap: 3,
-        transform: "rotate(-90deg)",
-        transformOrigin: "center center",
-        padding: "0 6px",
+        fontSize: 9,
+        fontWeight: 700,
+        color: "#111",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+        fontFamily: "Arial, Helvetica, sans-serif",
+        lineHeight: 1,
+        paddingBottom: 2,
+        textTransform: "uppercase",
       }}
     >
-      {/* Label */}
-      <span
-        style={{
-          fontSize: labelSize,
-          fontWeight: 700,
-          color: "#1a1a1a",
-          textTransform: "uppercase",
-          fontFamily: "Arial, Helvetica, sans-serif",
-          lineHeight: 1,
-          letterSpacing: 0.3,
-          whiteSpace: "nowrap",
-        }}
-      >
-        {label}
-      </span>
-      {/* Linha */}
-      <div
-        style={{
-          width: "100%",
-          height: 1,
-          backgroundColor: "#555",
-        }}
-      />
-      {/* Valor */}
-      <span
-        style={{
-          fontSize: valueSize,
-          fontWeight: 700,
-          color: "#1a1a1a",
-          textTransform: "uppercase",
-          fontFamily: "Arial, Helvetica, sans-serif",
-          lineHeight: 1,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          maxWidth: "100%",
-          textOverflow: "ellipsis",
-        }}
-      >
-        {value || "\u00A0"}
-      </span>
-    </div>
+      {label}
+    </span>
+    <span
+      style={{
+        flex: 1,
+        borderBottom: "1.5px solid #444",
+        fontSize: vSize,
+        fontWeight: 700,
+        color: "#111",
+        textTransform: "uppercase",
+        fontFamily: "Arial, Helvetica, sans-serif",
+        paddingBottom: 1,
+        lineHeight: 1,
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {value || "\u00A0"}
+    </span>
   </div>
 );
 
+// ─── Main Component ───────────────────────────────────────────────────────
 const RGPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
   const pet = (location.state as { pet: PetData })?.pet;
+
+  // Responsividade: escala o card para caber na tela sem scroll horizontal
+  useEffect(() => {
+    const handleResize = () => {
+      const CW = 960;
+      const padding = 32; // px de margin nas laterais
+      const availW = window.innerWidth - padding;
+      setScale(availW < CW ? availW / CW : 1);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   if (!pet) {
     return (
@@ -219,7 +183,7 @@ const RGPage = () => {
 
   const today = new Date().toLocaleDateString("pt-BR");
 
-  // Naturalidade: usa cidade+estado se disponíveis (novo form), ou faz parse do endereco
+  // Naturalidade: usa cidade+estado se disponíveis, senão faz parse do endereço
   const naturalidade = pet.cidade
     ? pet.estado
       ? `${pet.cidade} - ${pet.estado}`
@@ -230,9 +194,9 @@ const RGPage = () => {
         : pet.endereco
       : "";
 
+  // ── PDF download via html-to-image (respeita transform:rotate nativamente) ──
   const handleDownloadPDF = async () => {
     if (!cardRef.current) return;
-
     const imgData = await toJpeg(cardRef.current, {
       quality: 0.97,
       pixelRatio: 3,
@@ -240,15 +204,11 @@ const RGPage = () => {
       fetchRequestInit: { cache: "no-cache" },
       skipFonts: false,
     });
-
-    const pdfW = 297;
-    const pdfH = 210;
+    const pdfW = 297, pdfH = 210;
+    const CW = 960, CH = 600;
     const printW = pdfW - 16;
-    const cardAspect = CH / CW;
-    const printH = printW * cardAspect;
-    const x = 8;
-    const y = printH < pdfH ? (pdfH - printH) / 2 : 4;
-
+    const printH = printW * (CH / CW);
+    const x = 8, y = printH < pdfH ? (pdfH - printH) / 2 : 4;
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
     pdf.addImage(imgData, "JPEG", x, y, printW, printH);
     pdf.save(`RG_${pet.nome}_${pet.registroId}.pdf`);
@@ -263,39 +223,14 @@ const RGPage = () => {
     }
   };
 
+  // Dimensões fixas do card (proporção A4 paisagem)
   const CW = 960;
   const CH = 600;
   const HH = CH - 24;
 
-  // Campos do lado direito — ordem igual ao modelo de referência
-  // Grupo esquerdo (de baixo pra cima no modelo): NOME, NASCIMENTO, NATURALIDADE, SEXO, CASTRADO, TUTORES
-  // Grupo direito (de baixo pra cima): NUM.REGISTRO, DATA EXPEDICAO, ESPECIE, RACA, PORTE, PELAGEM
-  const camposEsquerda = [
-    { label: "NOME", value: pet.nome },
-    { label: "NASCIMENTO", value: formatDate(pet.dataNascimento) },
-    { label: "NATURALIDADE", value: naturalidade },
-    { label: "SEXO", value: pet.sexo },
-    { label: "CASTRADO", value: pet.castrado || "A VERIFICAR" },
-    { label: "TUTORES", value: pet.nomeTutor },
-  ];
-
-  const camposDireita = [
-    { label: "NUMERO DE REGISTRO", value: pet.registroId },
-    { label: "DATA DE EXPEDICAO", value: today },
-    { label: "ESPECIE", value: speciesLabel[pet.especie] || pet.especie },
-    { label: "RACA", value: pet.raca || "SRD" },
-    { label: "PORTE", value: pet.porte || "" },
-    { label: "PELAGEM", value: pet.corPredominante || "" },
-  ];
-
-  // Largura de cada coluna de campo
-  // Lado direito tem 2 grupos de 6 campos
-  // Largura disponível para campos = (CW/2) - bordas - padding ≈ 380px
-  // 12 campos × colW = 380 → colW ≈ 31px
-  const COL_W = 31;
-
   return (
     <div className="min-h-screen bg-muted/50">
+      {/* Header */}
       <header className="bg-background/80 backdrop-blur-md border-b sticky top-0 z-50 print:hidden">
         <div className="container mx-auto flex items-center gap-4 h-16 px-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
@@ -311,300 +246,308 @@ const RGPage = () => {
       </header>
 
       <main className="container mx-auto px-4 py-10 max-w-5xl">
-        <div className="text-center mb-10 print:hidden">
+        {/* Título */}
+        <div className="text-center mb-8 print:hidden">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
             ✅ Registro concluído
           </div>
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">
-            RG Digital do Pet
-          </h1>
+          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">RG Digital do Pet</h1>
           <p className="text-muted-foreground">
             Documento de <strong className="text-foreground">{pet.nome}</strong> pronto para download/impressão.
           </p>
         </div>
 
-        <div className="overflow-x-auto pb-4">
-          <div style={{ minWidth: CW, display: "flex", justifyContent: "center" }}>
-
-            {/* ══════════════ CARD RG ══════════════ */}
+        {/* ── Container Responsivo ─────────────────────────────────────── */}
+        {/* O wrapper tem as dimensões escaladas para não deixar espaço em branco */}
+        <div className="flex justify-center w-full mb-6">
+          <div
+            style={{
+              width: CW * scale,
+              height: CH * scale,
+              position: "relative",
+              flexShrink: 0,
+            }}
+          >
+            {/* Elemento que recebe o scale — o cardRef aponta para o filho sem escala */}
             <div
-              ref={cardRef}
               style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                transformOrigin: "top left",
+                transform: `scale(${scale})`,
                 width: CW,
                 height: CH,
-                backgroundColor: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 10,
-                fontFamily: "Arial, Helvetica, sans-serif",
-                position: "relative",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
               }}
             >
-              {/* Moldura verde escura com padrão patinhas */}
+              {/* ══════════ CARD RG ══════════ */}
               <div
+                ref={cardRef}
                 style={{
-                  position: "absolute",
-                  inset: 8,
-                  borderRadius: 6,
-                  backgroundColor: "#4a6e58",
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 2c-1.6 0-3 1.5-3 3s1.4 3 3 3 3-1.5 3-3-1.4-3-3-3zM5.5 6C4.1 6 3 7.5 3 9s1.1 3 2.5 3S8 10.5 8 9 6.9 6 5.5 6zm13 0c-1.4 0-2.5 1.5-2.5 3s1.1 3 2.5 3S21 10.5 21 9s-1.1-3-2.5-3zM12 13c-2.4 0-4.5 1.5-5.5 3.5-.5 1 .2 2 1.2 2 .5 0 1-.2 1.5-.4 1-.5 2-.5 2.8-.5s1.8 0 2.8.5c.5.2 1 .4 1.5.4 1 0 1.7-1 1.2-2C16.5 14.5 14.4 13 12 13z' fill='%23ffffff' fill-opacity='0.1'/%3E%3C/svg%3E")`,
-                }}
-              />
-
-              {/* Duas metades */}
-              <div
-                style={{
-                  position: "relative",
-                  width: "100%",
-                  height: "100%",
+                  width: CW,
+                  height: CH,
+                  backgroundColor: "#fff",
                   display: "flex",
-                  gap: 6,
+                  alignItems: "center",
+                  justifyContent: "center",
                   padding: 10,
+                  fontFamily: "Arial, Helvetica, sans-serif",
+                  position: "relative",
+                  boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
                 }}
               >
-
-                {/* ═══════════ METADE ESQUERDA ═══════════ */}
+                {/* Moldura verde escura com padrão de patinhas */}
                 <div
                   style={{
-                    flex: 1,
-                    borderRadius: 4,
-                    backgroundColor: "#cfe8c8",
+                    position: "absolute",
+                    inset: 8,
+                    borderRadius: 6,
+                    backgroundColor: "#4a6e58",
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 2c-1.6 0-3 1.5-3 3s1.4 3 3 3 3-1.5 3-3-1.4-3-3-3zM5.5 6C4.1 6 3 7.5 3 9s1.1 3 2.5 3S8 10.5 8 9 6.9 6 5.5 6zm13 0c-1.4 0-2.5 1.5-2.5 3s1.1 3 2.5 3S21 10.5 21 9s-1.1-3-2.5-3zM12 13c-2.4 0-4.5 1.5-5.5 3.5-.5 1 .2 2 1.2 2 .5 0 1-.2 1.5-.4 1-.5 2-.5 2.8-.5s1.8 0 2.8.5c.5.2 1 .4 1.5.4 1 0 1.7-1 1.2-2C16.5 14.5 14.4 13 12 13z' fill='%23ffffff' fill-opacity='0.1'/%3E%3C/svg%3E")`,
+                  }}
+                />
+
+                {/* Duas metades */}
+                <div
+                  style={{
+                    position: "relative",
+                    width: "100%",
+                    height: "100%",
                     display: "flex",
-                    overflow: "hidden",
+                    gap: 6,
+                    padding: 10,
                   }}
                 >
-                  {/* Borda esq */}
-                  <VText w={22} h={HH} size={8} weight={700} rotate={-90} spacing={0.4}>
-                    REGISTRADO POR WWW.REGISTRAPET.PET
-                  </VText>
-
-                  {/* Conteúdo */}
+                  {/* ══════════ METADE ESQUERDA ══════════ */}
                   <div
                     style={{
                       flex: 1,
+                      borderRadius: 4,
+                      backgroundColor: "#cfe8c8",
                       display: "flex",
-                      alignItems: "center",
-                      padding: "12px 6px",
-                      gap: 6,
+                      overflow: "hidden",
                     }}
                   >
-                    {/* Títulos verticais */}
+                    {/* Borda esq */}
+                    <VText w={22} h={HH} size={8} weight={700} rotate={-90} spacing={0.4}>
+                      REGISTRADO POR WWW.REGISTRAPET.PET
+                    </VText>
+
+                    {/* Conteúdo esquerdo */}
                     <div
                       style={{
+                        flex: 1,
                         display: "flex",
-                        flexDirection: "column",
                         alignItems: "center",
-                        justifyContent: "flex-end",
+                        padding: "12px 6px",
+                        gap: 6,
+                      }}
+                    >
+                      {/* Títulos verticais */}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "flex-end",
+                          height: "100%",
+                          gap: 4,
+                          paddingBottom: 6,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <VText w={32} h={HH - 50} size={17} weight={900} rotate={-90} spacing={0}>
+                          REGISTRO DOS ANIMAIS DO BRASIL
+                        </VText>
+                        <VText w={14} h={HH - 50} size={7} weight={700} rotate={-90} spacing={0.3}>
+                          ATRAVES DO SITE WWW.REGISTRAPET.PET
+                        </VText>
+                      </div>
+
+                      {/* Foto + QR Code */}
+                      <div
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "space-evenly",
+                          height: "100%",
+                          padding: "0 8px",
+                        }}
+                      >
+                        {/* Foto */}
+                        <div
+                          style={{
+                            width: 170,
+                            height: 170,
+                            backgroundColor: "#fff",
+                            border: "1px solid #aaa",
+                            overflow: "hidden",
+                            flexShrink: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          {pet.foto ? (
+                            <img
+                              src={pet.foto}
+                              alt={pet.nome}
+                              crossOrigin="anonymous"
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          ) : (
+                            <PawPrint style={{ width: 60, height: 60, color: "#ccc" }} />
+                          )}
+                        </div>
+
+                        {/* QR Code */}
+                        <div
+                          style={{
+                            width: 170,
+                            height: 170,
+                            backgroundColor: "#fff",
+                            border: "1px solid #aaa",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                            position: "relative",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              opacity: 0.06,
+                            }}
+                          >
+                            <PawPrint style={{ width: 120, height: 120, color: "#000" }} />
+                          </div>
+                          <QRCodeSVG
+                            value={`https://registrarpet.com/consulta/${pet.registroId}`}
+                            size={152}
+                            level="M"
+                            fgColor="#1a1a1a"
+                            style={{ position: "relative", zIndex: 1 }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Assinatura */}
+                      <VText w={20} h={HH} size={9.5} weight={700} rotate={-90} spacing={1}>
+                        • ASSINATURA
+                      </VText>
+                    </div>
+                  </div>
+
+                  {/* ══════════ DIVISÓRIA ══════════ */}
+                  <div
+                    style={{
+                      width: 8,
+                      display: "flex",
+                      alignItems: "stretch",
+                      justifyContent: "center",
+                      opacity: 0.3,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 1,
+                        borderLeft: "2px dashed rgba(0,0,0,0.5)",
                         height: "100%",
-                        gap: 4,
-                        paddingBottom: 6,
+                      }}
+                    />
+                  </div>
+
+                  {/* ══════════ METADE DIREITA ══════════ */}
+                  <div
+                    style={{
+                      flex: 1,
+                      borderRadius: 4,
+                      backgroundColor: "#cfe8c8",
+                      display: "flex",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* Borda esq: CARTEIRA DE IDENTIDADE ANIMAL */}
+                    <div
+                      style={{
+                        borderRight: "1px solid rgba(74,110,88,0.25)",
                         flexShrink: 0,
                       }}
                     >
-                      <VText w={32} h={HH - 50} size={17} weight={900} rotate={-90} spacing={0}>
-                        REGISTRO DOS ANIMAIS DO BRASIL
-                      </VText>
-                      <VText w={14} h={HH - 50} size={7} weight={700} rotate={-90} spacing={0.3}>
-                        ATRAVES DO SITE WWW.REGISTRAPET.PET
+                      <VText w={26} h={HH} size={9} weight={700} rotate={-90} spacing={1.5}>
+                        CARTEIRA DE IDENTIDADE ANIMAL
                       </VText>
                     </div>
 
-                    {/* Foto + QR */}
+                    {/* Campos: linhas label + valor */}
                     <div
                       style={{
                         flex: 1,
                         display: "flex",
                         flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "space-evenly",
-                        height: "100%",
-                        padding: "0 8px",
+                        justifyContent: "center",
+                        gap: 17,
+                        padding: "16px 10px 16px 14px",
+                        minWidth: 0,
                       }}
                     >
-                      {/* Foto */}
-                      <div
-                        style={{
-                          width: 170,
-                          height: 170,
-                          backgroundColor: "#fff",
-                          border: "1px solid #aaa",
-                          overflow: "hidden",
-                          flexShrink: 0,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {pet.foto ? (
-                          <img
-                            src={pet.foto}
-                            alt={pet.nome}
-                            crossOrigin="anonymous"
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                          />
-                        ) : (
-                          <PawPrint style={{ width: 60, height: 60, color: "#ccc" }} />
-                        )}
+                      {/* NOME */}
+                      <Field label="NOME" value={pet.nome} flex={1} vSize={15} />
+
+                      {/* NASCIMENTO + Nº REGISTRO */}
+                      <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
+                        <Field label="NASCIMENTO" value={formatDate(pet.dataNascimento)} flex={1} />
+                        <Field label="No REGISTRO" value={pet.registroId} flex={1} />
                       </div>
 
-                      {/* QR Code */}
-                      <div
-                        style={{
-                          width: 170,
-                          height: 170,
-                          backgroundColor: "#fff",
-                          border: "1px solid #aaa",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                          position: "relative",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            opacity: 0.06,
-                          }}
-                        >
-                          <PawPrint style={{ width: 120, height: 120, color: "#000" }} />
-                        </div>
-                        <QRCodeSVG
-                          value={`https://registrarpet.com/consulta/${pet.registroId}`}
-                          size={152}
-                          level="M"
-                          fgColor="#1a1a1a"
-                          style={{ position: "relative", zIndex: 1 }}
-                        />
+                      {/* NATURALIDADE + EXPEDIÇÃO */}
+                      <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
+                        <Field label="NATURALIDADE" value={naturalidade} flex={1} />
+                        <Field label="EXPEDICAO" value={today} flex={0.85} />
+                      </div>
+
+                      {/* SEXO + ESPÉCIE + RAÇA */}
+                      <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
+                        <Field label="SEXO" value={pet.sexo} flex={0.55} />
+                        <Field label="ESPECIE" value={speciesLabel[pet.especie] || pet.especie} flex={0.7} />
+                        <Field label="RACA" value={pet.raca || "SRD"} flex={1} />
+                      </div>
+
+                      {/* CASTRADO + PORTE */}
+                      <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
+                        <Field label="CASTRADO" value={pet.castrado || "A VERIFICAR"} flex={1} />
+                        <Field label="PORTE" value={pet.porte || "—"} flex={0.8} />
+                      </div>
+
+                      {/* TUTORES + PELAGEM */}
+                      <div style={{ display: "flex", gap: 10, minWidth: 0 }}>
+                        <Field label="TUTORES" value={pet.nomeTutor} flex={1} />
+                        <Field label="PELAGEM" value={pet.corPredominante || "—"} flex={0.8} />
                       </div>
                     </div>
 
-                    {/* Assinatura */}
-                    <VText w={20} h={HH} size={9.5} weight={700} rotate={-90} spacing={1}>
-                      • ASSINATURA
+                    {/* Borda dir: REGISTRADO POR */}
+                    <VText w={22} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>
+                      REGISTRADO POR WWW.REGISTRAPET.PET
                     </VText>
                   </div>
                 </div>
-
-                {/* ═══════════ DIVISÓRIA ═══════════ */}
-                <div
-                  style={{
-                    width: 8,
-                    display: "flex",
-                    alignItems: "stretch",
-                    justifyContent: "center",
-                    opacity: 0.3,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 1,
-                      borderLeft: "2px dashed rgba(0,0,0,0.5)",
-                      height: "100%",
-                    }}
-                  />
-                </div>
-
-                {/* ═══════════ METADE DIREITA ═══════════ */}
-                <div
-                  style={{
-                    flex: 1,
-                    borderRadius: 4,
-                    backgroundColor: "#cfe8c8",
-                    display: "flex",
-                    overflow: "hidden",
-                  }}
-                >
-                  {/* Borda esq: REGISTRADO POR */}
-                  <VText w={22} h={HH} size={8} weight={700} rotate={-90} spacing={0.4}>
-                    REGISTRADO POR WWW.REGISTRAPET.PET
-                  </VText>
-
-                  {/* Separador vertical fino */}
-                  <div style={{ width: 1, backgroundColor: "rgba(74,110,88,0.3)", flexShrink: 0 }} />
-
-                  {/* CARTEIRA DE IDENTIDADE ANIMAL */}
-                  <VText w={22} h={HH} size={8.5} weight={700} rotate={-90} spacing={1}>
-                    CARTEIRA DE IDENTIDADE ANIMAL
-                  </VText>
-
-                  {/* Separador */}
-                  <div style={{ width: 1, backgroundColor: "rgba(74,110,88,0.3)", flexShrink: 0 }} />
-
-                  {/* ── GRUPO ESQUERDO de campos ── */}
-                  <div
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "stretch",
-                    }}
-                  >
-                    {camposEsquerda.map((campo) => (
-                      <FieldCol
-                        key={campo.label}
-                        label={campo.label}
-                        value={campo.value}
-                        colW={COL_W}
-                        colH={HH}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Separador central entre grupos */}
-                  <div
-                    style={{
-                      width: 2,
-                      backgroundColor: "rgba(74,110,88,0.4)",
-                      flexShrink: 0,
-                    }}
-                  />
-
-                  {/* ── GRUPO DIREITO de campos ── */}
-                  <div
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "row",
-                      alignItems: "stretch",
-                    }}
-                  >
-                    {camposDireita.map((campo) => (
-                      <FieldCol
-                        key={campo.label}
-                        label={campo.label}
-                        value={campo.value}
-                        colW={COL_W}
-                        colH={HH}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Separador */}
-                  <div style={{ width: 1, backgroundColor: "rgba(74,110,88,0.3)", flexShrink: 0 }} />
-
-                  {/* Borda dir: REGISTRADO POR */}
-                  <VText w={22} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>
-                    REGISTRADO POR WWW.REGISTRAPET.PET
-                  </VText>
-                </div>
-
               </div>
+              {/* ══════════ FIM CARD ══════════ */}
             </div>
-            {/* ══════════════ FIM CARD ══════════════ */}
-
           </div>
         </div>
 
         {/* Botões */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-8 max-w-[600px] mx-auto print:hidden">
+        <div className="flex flex-col sm:flex-row gap-3 mt-4 max-w-[600px] mx-auto print:hidden">
           <Button variant="hero" size="lg" className="flex-1 h-14" onClick={handleDownloadPDF}>
             <Download className="w-5 h-5 mr-1" />
             Baixar RG em PDF (A4)
