@@ -216,7 +216,7 @@ const RGPage = () => {
 
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", gap: 4, height: HH, paddingBottom: 6 }}>
                       <VText w={30} h={HH - 50} size={14} weight={900} rotate={90} spacing={0}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
-                      <VText w={14} h={HH - 50} size={6} weight={700} rotate={90} spacing={0.3}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
+                      <VText w={14} h={HH - 50} size={6} weight={700} rotate={90} spacing={0.3}>ATRAVÉS DO SITE WWW.REGISTRAPET.PET</VText>
                     </div>
                   </div>
 
