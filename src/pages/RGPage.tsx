@@ -238,7 +238,10 @@ const RGPage = () => {
           )}
         </div>
 
-        <div className="text-center mt-6 print:hidden">
+        <div className="flex flex-col sm:flex-row gap-3 mt-4 max-w-[600px] mx-auto print:hidden justify-center">
+          <Button variant="ghost" className="text-primary" onClick={() => navigate("/certidao", { state: { pet } })}>
+            📜 Ver Certidão de Nascimento
+          </Button>
           <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>+ Cadastrar outro pet</Button>
         </div>
       </main>
