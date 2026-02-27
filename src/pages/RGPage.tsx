@@ -16,10 +16,17 @@ interface PetData {
   sexo: string;
   dataNascimento: string;
   corPredominante: string;
+  porte: string;
+  castrado: string;
+  microchip: string;
   nomeTutor: string;
+  nomeTutor2: string;
   cpfTutor: string;
   telefone: string;
+  email: string;
   endereco: string;
+  cidade: string;
+  estado: string;
   registroId: string;
 }
 
@@ -212,11 +219,16 @@ const RGPage = () => {
 
   const today = new Date().toLocaleDateString("pt-BR");
 
-  const naturalidade = pet.endereco
-    ? pet.endereco.includes(" - ")
-      ? pet.endereco.split(" - ")[1].trim()
-      : pet.endereco
-    : "";
+  // Naturalidade: usa cidade+estado se disponíveis (novo form), ou faz parse do endereco
+  const naturalidade = pet.cidade
+    ? pet.estado
+      ? `${pet.cidade} - ${pet.estado}`
+      : pet.cidade
+    : pet.endereco
+      ? pet.endereco.includes(" - ")
+        ? pet.endereco.split(" - ").slice(-1)[0].trim()
+        : pet.endereco
+      : "";
 
   const handleDownloadPDF = async () => {
     if (!cardRef.current) return;
@@ -263,7 +275,7 @@ const RGPage = () => {
     { label: "NASCIMENTO", value: formatDate(pet.dataNascimento) },
     { label: "NATURALIDADE", value: naturalidade },
     { label: "SEXO", value: pet.sexo },
-    { label: "CASTRADO", value: "A VERIFICAR" },
+    { label: "CASTRADO", value: pet.castrado || "A VERIFICAR" },
     { label: "TUTORES", value: pet.nomeTutor },
   ];
 
@@ -272,7 +284,7 @@ const RGPage = () => {
     { label: "DATA DE EXPEDICAO", value: today },
     { label: "ESPECIE", value: speciesLabel[pet.especie] || pet.especie },
     { label: "RACA", value: pet.raca || "SRD" },
-    { label: "PORTE", value: "" },
+    { label: "PORTE", value: pet.porte || "" },
     { label: "PELAGEM", value: pet.corPredominante || "" },
   ];
 
