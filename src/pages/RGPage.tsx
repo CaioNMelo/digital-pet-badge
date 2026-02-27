@@ -31,16 +31,16 @@ const VText = ({ children, w, h, size = 9, weight = 700, rotate = -90, spacing =
 
 // Coluna de campo vertical: label + linha + valor, rodado -90°
 // colH = altura do container = comprimento disponível para o texto após rotação
-const FieldCol = ({ label, value, colH, flexVal = 1 }: {
-  label: string; value: string; colH: number; flexVal?: number;
+const FieldCol = ({ label, value, colH, flexVal = 1, isLast = false }: {
+  label: string; value: string; colH: number; flexVal?: number; isLast?: boolean;
 }) => (
-  <div style={{ flex: flexVal, height: colH, position: "relative", overflow: "hidden", borderRight: "1px solid rgba(74,104,88,0.22)" }}>
-    {/* O div interno tem largura = colH para que o texto caiba após rotate(-90deg) */}
+  <div style={{ flex: flexVal, height: colH, position: "relative", overflow: "hidden", borderRight: isLast ? "none" : "1px solid rgba(74,104,88,0.22)" }}>
+    {/* O div interno diminui a largura para criar margem de segurança no texto */}
     <div style={{
       position: "absolute", top: "50%", left: "50%",
-      width: colH - 20,
+      width: colH - 32, // Margem de segurança de 16px no top e bottom (depois do rotate)
       transform: "translate(-50%, -50%) rotate(-90deg)",
-      display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, padding: "0 4px",
+      display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, padding: "0 8px", // Respiro lateral 
     }}>
       <span style={{ fontSize: 7, fontWeight: 700, color: "#2a2a2a", textTransform: "uppercase", fontFamily: "Arial, sans-serif", whiteSpace: "nowrap", lineHeight: 1, letterSpacing: 0.3 }}>
         {label}
@@ -113,17 +113,17 @@ const RGPage = () => {
     { label: "NOME", value: pet.nome, flex: 2 },
     { label: "NASCIMENTO", value: fmt(pet.dataNascimento), flex: 1.1 },
     { label: "NATURALIDADE", value: naturalidade, flex: 1.2 },
-    { label: "SEXO", value: pet.sexo, flex: 0.85 },
-    { label: "CASTRADO", value: pet.castrado || "A VERIFICAR", flex: 1.1 },
-    { label: "TUTORES", value: pet.nomeTutor, flex: 1.2 },
+    { label: "SEXO", value: pet.sexo, flex: 0.75 },
+    { label: "CASTRADO", value: pet.castrado || "A VERIFICAR", flex: 1.0 },
+    { label: "TUTORES", value: pet.nomeTutor, flex: 1.4 }, // Aumenta o peso final para empurrar o resto, mas dar margem a ele mesmo.
   ];
   const grupo2 = [
-    { label: "No REGISTRO", value: pet.registroId, flex: 1.8 },
+    { label: "No REGISTRO", value: pet.registroId, flex: 1.7 }, // Reduz para não grudar na parede
     { label: "EXPEDICAO", value: today, flex: 1.1 },
-    { label: "ESPECIE", value: speciesLabel[pet.especie] || pet.especie, flex: 1 },
-    { label: "RACA", value: pet.raca || "SRD", flex: 1 },
-    { label: "PORTE", value: pet.porte || "—", flex: 0.85 },
-    { label: "PELAGEM", value: pet.corPredominante || "—", flex: 1 },
+    { label: "ESPECIE", value: speciesLabel[pet.especie] || pet.especie, flex: 0.9 },
+    { label: "RACA", value: pet.raca || "SRD", flex: 0.9 },
+    { label: "PORTE", value: pet.porte || "—", flex: 0.75 },
+    { label: "PELAGEM", value: pet.corPredominante || "—", flex: 1.4 },
   ];
 
   return (
@@ -191,26 +191,27 @@ const RGPage = () => {
 
                   {/* METADE DIREITA */}
                   <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
-                    <div style={{ borderRight: "1px solid rgba(74,110,88,0.25)", flexShrink: 0 }}>
-                      <VText w={26} h={HH} size={9} weight={700} rotate={-90} spacing={1.5}>CARTEIRA DE IDENTIDADE ANIMAL</VText>
+                    <div style={{ borderRight: "1px solid rgba(74,110,88,0.25)", flexShrink: 0, marginRight: 8 }}>
+                      {/* VText central mais largo (w=34) garante o respiro antes de começar os campos */}
+                      <VText w={34} h={HH} size={9} weight={700} rotate={-90} spacing={1.5}>CARTEIRA DE IDENTIDADE ANIMAL</VText>
                     </div>
 
-                    {/* Dois grupos de colunas verticais empilhados */}
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                    {/* Dois grupos de colunas verticais empilhados, com padding de respiro lateral (left e right) */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", paddingLeft: 12, paddingRight: 12 }}>
 
                       {/* Grupo 1 — linha superior */}
                       <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch", borderBottom: "2px solid rgba(74,110,88,0.4)" }}>
-                        {grupo1.map(c => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} />)}
+                        {grupo1.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo1.length - 1} />)}
                       </div>
 
                       {/* Grupo 2 — linha inferior */}
                       <div style={{ height: HALF, display: "flex", flexDirection: "row", alignItems: "stretch" }}>
-                        {grupo2.map(c => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} />)}
+                        {grupo2.map((c, i) => <FieldCol key={c.label} label={c.label} value={c.value} colH={HALF} flexVal={c.flex} isLast={i === grupo2.length - 1} />)}
                       </div>
 
                     </div>
 
-                    <VText w={22} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    <VText w={20} h={HH} size={8} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
                   </div>
 
                 </div>
