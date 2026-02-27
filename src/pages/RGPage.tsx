@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Share2, PawPrint } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -69,7 +69,24 @@ const Field = ({ label, value, flex = 1, large = false }: { label: string; value
 const RGPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
   const pet = (location.state as { pet: PetData })?.pet;
+
+  useEffect(() => {
+    const handleResize = () => {
+      const ww = window.innerWidth;
+      // 900px is the card width, 40px is for padding on mobile
+      if (ww < 940) {
+        setScale((ww - 40) / 900);
+      } else {
+        setScale(1);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   if (!pet) {
     return (
@@ -272,7 +289,7 @@ const RGPage = () => {
     }
   };
 
-  const CARD_W = 940, CARD_H = 590, HALF_H = 570;
+  const HALF_H = 570; // This constant is still used for VerticalText containerHeight
 
   return (
     <div className="min-h-screen bg-muted/50">
@@ -291,102 +308,144 @@ const RGPage = () => {
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-semibold mb-4">✅ Registro concluído</div>
           <h1 className="text-3xl font-heading font-bold text-foreground mb-2">RG Digital do Pet</h1>
           <p className="text-muted-foreground">Documento de <strong className="text-foreground">{pet.nome}</strong> pronto para download/impressão.</p>
-        </div>
+          {/* Container Responsivo para o Card */}
+          <div className="flex justify-center w-full mb-6">
+            <div
+              style={{
+                width: 900 * scale,
+                height: 580 * scale,
+                position: "relative",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  transform: `scale(${scale})`,
+                  transformOrigin: "top left",
+                  width: "900px",
+                  height: "580px",
+                }}
+              >
+                {/* O ref vai no elemento original que sofre o HTML2Canvas sem transformações quebradas */}
+                <div
+                  ref={cardRef}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "#ffffff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "16px",
+                    fontFamily: "'Arial', sans-serif",
+                    position: "relative",
+                    boxShadow: scale === 1 ? "0 20px 60px rgba(0,0,0,0.2)" : "none",
+                  }}
+                >  <div style={{ position: "absolute", inset: "8px", borderRadius: "6px", backgroundColor: "#4a6e58", backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 2c-1.6 0-3 1.5-3 3s1.4 3 3 3 3-1.5 3-3-1.4-3-3-3zM5.5 6C4.1 6 3 7.5 3 9s1.1 3 2.5 3S8 10.5 8 9 6.9 6 5.5 6zm13 0c-1.4 0-2.5 1.5-2.5 3s1.1 3 2.5 3S21 10.5 21 9s-1.1-3-2.5-3zM12 13c-2.4 0-4.5 1.5-5.5 3.5-.5 1 .2 2 1.2 2 .5 0 1-.2 1.5-.4 1-.5 2-.5 2.8-.5s1.8 0 2.8.5c.5.2 1 .4 1.5.4 1 0 1.7-1 1.2-2C16.5 14.5 14.4 13 12 13z' fill='%23ffffff' fill-opacity='0.08'/%3E%3Csvg%3E")` }} />
+                  <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", gap: "6px", padding: "10px" }}>
 
-        <div className="overflow-x-auto pb-4">
-          <div style={{ minWidth: `${CARD_W}px`, display: "flex", justifyContent: "center" }}>
-            <div style={{ width: `${CARD_W}px`, height: `${CARD_H}px`, backgroundColor: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", fontFamily: "Arial, sans-serif", position: "relative", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-              <div style={{ position: "absolute", inset: "8px", borderRadius: "6px", backgroundColor: "#4a6e58", backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 2c-1.6 0-3 1.5-3 3s1.4 3 3 3 3-1.5 3-3-1.4-3-3-3zM5.5 6C4.1 6 3 7.5 3 9s1.1 3 2.5 3S8 10.5 8 9 6.9 6 5.5 6zm13 0c-1.4 0-2.5 1.5-2.5 3s1.1 3 2.5 3S21 10.5 21 9s-1.1-3-2.5-3zM12 13c-2.4 0-4.5 1.5-5.5 3.5-.5 1 .2 2 1.2 2 .5 0 1-.2 1.5-.4 1-.5 2-.5 2.8-.5s1.8 0 2.8.5c.5.2 1 .4 1.5.4 1 0 1.7-1 1.2-2C16.5 14.5 14.4 13 12 13z' fill='%23ffffff' fill-opacity='0.08'/%3E%3C/svg%3E")` }} />
-              <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", gap: "6px", padding: "10px" }}>
-
-                {/* ESQUERDA */}
-                <div style={{ flex: 1, borderRadius: "4px", backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
-                  <VerticalText text="REGISTRADO POR WWW.REGISTRAPET.PET" containerWidth={24} containerHeight={HALF_H} fontSize={8} letterSpacing="0.8px" direction="bottom-to-top" />
-                  <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 8px" }}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", flexShrink: 0, height: "100%", justifyContent: "flex-end", paddingBottom: "4px" }}>
-                      <VerticalText text="REGISTRO DOS ANIMAIS DO BRASIL" containerWidth={34} containerHeight={HALF_H - 60} fontSize={18} fontWeight={900} letterSpacing="0px" direction="bottom-to-top" />
-                      <VerticalText text="ATRAVÉS DO SITE WWW.REGISTRAPET.PET" containerWidth={16} containerHeight={HALF_H - 60} fontSize={7} fontWeight="bold" letterSpacing="0.3px" direction="bottom-to-top" />
-                    </div>
-                    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: "100%", padding: "0 12px" }}>
-                      <div style={{ width: "168px", height: "168px", backgroundColor: "#fff", border: "1px solid #aaa", overflow: "hidden", flexShrink: 0 }}>
-                        {pet.foto ? <img src={pet.foto} alt={pet.nome} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <PawPrint style={{ width: "60px", height: "60px", color: "#ccc" }} />}
-                      </div>
-                      <div style={{ width: "168px", height: "168px", backgroundColor: "#fff", border: "1px solid #aaa", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", overflow: "hidden" }}>
-                        <div style={{ position: "absolute", inset: 0, opacity: 0.06, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <PawPrint style={{ width: "120px", height: "120px", color: "#000" }} />
+                    {/* ESQUERDA */}
+                    <div style={{ flex: 1, borderRadius: "4px", backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
+                      <VerticalText text="REGISTRADO POR WWW.REGISTRAPET.PET" containerWidth={24} containerHeight={HALF_H} fontSize={8} letterSpacing="0.8px" direction="bottom-to-top" />
+                      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 8px" }}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", flexShrink: 0, height: "100%", justifyContent: "flex-end", paddingBottom: "4px" }}>
+                          <VerticalText text="REGISTRO DOS ANIMAIS DO BRASIL" containerWidth={34} containerHeight={HALF_H - 60} fontSize={18} fontWeight={900} letterSpacing="0px" direction="bottom-to-top" />
+                          <VerticalText text="ATRAVÉS DO SITE WWW.REGISTRAPET.PET" containerWidth={16} containerHeight={HALF_H - 60} fontSize={7} fontWeight="bold" letterSpacing="0.3px" direction="bottom-to-top" />
                         </div>
-                        <div data-qr-export="true" style={{ position: "relative", zIndex: 1 }}>
-                          <QRCodeSVG value={`https://registrarpet.com/consulta/${pet.registroId}`} size={148} level="M" fgColor="#1a1a1a" />
+                        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: "100%", padding: "0 12px" }}>
+                          <div style={{ width: "168px", height: "168px", backgroundColor: "#fff", border: "1px solid #aaa", overflow: "hidden", flexShrink: 0 }}>
+                            {pet.foto ? <img src={pet.foto} alt={pet.nome} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <PawPrint style={{ width: "60px", height: "60px", color: "#ccc" }} />}
+                          </div>
+                          <div style={{ width: "168px", height: "168px", backgroundColor: "#fff", border: "1px solid #aaa", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", overflow: "hidden" }}>
+                            <div style={{ position: "absolute", inset: 0, opacity: 0.06, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <PawPrint style={{ width: "120px", height: "120px", color: "#000" }} />
+                            </div>
+                            <div data-qr-export="true" style={{ position: "relative", zIndex: 1 }}>
+                              <QRCodeSVG value={`https://registrarpet.com/consulta/${pet.registroId}`} size={148} level="M" fgColor="#1a1a1a" />
+                            </div>
+                          </div>
                         </div>
+                        <VerticalText text="• ASSINATURA" containerWidth={22} containerHeight={HALF_H} fontSize={10} fontWeight="bold" letterSpacing="1px" direction="bottom-to-top" />
                       </div>
                     </div>
-                    <VerticalText text="• ASSINATURA" containerWidth={22} containerHeight={HALF_H} fontSize={10} fontWeight="bold" letterSpacing="1px" direction="bottom-to-top" />
-                  </div>
-                </div>
 
-                {/* DIVISÓRIA */}
-                <div style={{ width: "8px", display: "flex", alignItems: "stretch", justifyContent: "center", opacity: 0.35 }}>
-                  <div style={{ width: "1px", borderLeft: "2px dashed rgba(0,0,0,0.4)", height: "100%" }} />
-                </div>
+                    {/* DIVISÓRIA */}
+                    <div style={{ width: "8px", display: "flex", alignItems: "stretch", justifyContent: "center", opacity: 0.35 }}>
+                      <div style={{ width: "1px", borderLeft: "2px dashed rgba(0,0,0,0.4)", height: "100%" }} />
+                    </div>
 
-                {/* DIREITA */}
-                <div style={{ flex: 1, borderRadius: "4px", backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
-                  <div style={{ borderRight: "1px solid rgba(74,110,88,0.2)", flexShrink: 0 }}>
-                    <VerticalText text="CARTEIRA DE IDENTIDADE ANIMAL" containerWidth={26} containerHeight={HALF_H} fontSize={9} fontWeight="bold" letterSpacing="1.5px" direction="bottom-to-top" />
+                    {/* DIREITA */}
+                    <div style={{ flex: 1, borderRadius: "4px", backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
+                      <div style={{ borderRight: "1px solid rgba(74,110,88,0.2)", flexShrink: 0 }}>
+                        <VerticalText text="CARTEIRA DE IDENTIDADE ANIMAL" containerWidth={26} containerHeight={HALF_H} fontSize={9} fontWeight="bold" letterSpacing="1.5px" direction="bottom-to-top" />
+                      </div>
+                      {/* Área dos dados */}
+                      <div
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "center",
+                          gap: "18px",
+                          padding: "20px 10px 20px 14px",
+                          minWidth: 0,
+                        }}
+                      >  <Field label="NOME" value={pet.nome} large flex={1} />
+                        <div style={{ display: "flex", gap: "14px" }}>
+                          <Field label="NASCIMENTO" value={formatDate(pet.dataNascimento)} flex={1} />
+                          <Field label="Nº REGISTRO" value={pet.registroId} flex={1} />
+                        </div>
+                        <div style={{ display: "flex", gap: "14px" }}>
+                          <Field label="NATURALIDADE" value={naturalidade} flex={1} />
+                          <Field label="EXPEDIÇÃO" value={today} flex={0.85} />
+                        </div>
+                        <div style={{ display: "flex", gap: "14px" }}>
+                          <Field label="SEXO" value={pet.sexo} flex={0.55} />
+                          <Field label="ESPÉCIE" value={speciesLabel[pet.especie] || pet.especie} flex={0.7} />
+                          <Field label="RAÇA" value={pet.raca || "SRD"} flex={1} />
+                        </div>
+                        <div style={{ display: "flex", gap: "14px" }}>
+                          <Field label="CASTRADO" value="A VERIFICAR" flex={1} />
+                          <Field label="PORTE" value="________" flex={0.8} />
+                        </div>
+                        <div style={{ display: "flex", gap: "14px" }}>
+                          <Field label="TUTORES" value={pet.nomeTutor} flex={1} />
+                          <Field label="PELAGEM" value={pet.corPredominante || "________"} flex={0.8} />
+                        </div>
+                      </div>
+                      <VerticalText text="REGISTRADO POR WWW.REGISTRAPET.PET" containerWidth={24} containerHeight={HALF_H} fontSize={8} letterSpacing="0.8px" direction="top-to-bottom" />
+                    </div>
+
                   </div>
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: "20px", padding: "20px 10px 20px 16px", minWidth: 0 }}>
-                    <Field label="NOME" value={pet.nome} large flex={1} />
-                    <div style={{ display: "flex", gap: "14px" }}>
-                      <Field label="NASCIMENTO" value={formatDate(pet.dataNascimento)} flex={1} />
-                      <Field label="Nº REGISTRO" value={pet.registroId} flex={1} />
-                    </div>
-                    <div style={{ display: "flex", gap: "14px" }}>
-                      <Field label="NATURALIDADE" value={naturalidade} flex={1} />
-                      <Field label="EXPEDIÇÃO" value={today} flex={0.85} />
-                    </div>
-                    <div style={{ display: "flex", gap: "14px" }}>
-                      <Field label="SEXO" value={pet.sexo} flex={0.55} />
-                      <Field label="ESPÉCIE" value={speciesLabel[pet.especie] || pet.especie} flex={0.7} />
-                      <Field label="RAÇA" value={pet.raca || "SRD"} flex={1} />
-                    </div>
-                    <div style={{ display: "flex", gap: "14px" }}>
-                      <Field label="CASTRADO" value="A VERIFICAR" flex={1} />
-                      <Field label="PORTE" value="________" flex={0.8} />
-                    </div>
-                    <div style={{ display: "flex", gap: "14px" }}>
-                      <Field label="TUTORES" value={pet.nomeTutor} flex={1} />
-                      <Field label="PELAGEM" value={pet.corPredominante || "________"} flex={0.8} />
-                    </div>
-                  </div>
-                  <VerticalText text="REGISTRADO POR WWW.REGISTRAPET.PET" containerWidth={24} containerHeight={HALF_H} fontSize={8} letterSpacing="0.8px" direction="top-to-bottom" />
                 </div>
+                {/* ===== FIM CARD RG ===== */}
 
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mt-8 max-w-[600px] mx-auto print:hidden">
-          <Button variant="hero" size="lg" className="flex-1 h-14" onClick={handleDownloadPDF}>
-            <Download className="w-5 h-5 mr-1" />
-            Baixar RG em PDF (A4)
-          </Button>
-          {navigator.share && (
-            <Button variant="outline" size="lg" className="h-14" onClick={handleShare}>
-              <Share2 className="w-5 h-5 mr-1" />
-              Compartilhar
-            </Button>
-          )}
-        </div>
+            <div className="flex flex-col sm:flex-row gap-3 mt-8 max-w-[600px] mx-auto print:hidden">
+              <Button variant="hero" size="lg" className="flex-1 h-14" onClick={handleDownloadPDF}>
+                <Download className="w-5 h-5 mr-1" />
+                Baixar RG em PDF (A4)
+              </Button>
+              {navigator.share && (
+                <Button variant="outline" size="lg" className="h-14" onClick={handleShare}>
+                  <Share2 className="w-5 h-5 mr-1" />
+                  Compartilhar
+                </Button>
+              )}
+            </div>
 
-        <div className="text-center mt-6 print:hidden">
-          <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>
-            + Cadastrar outro pet
-          </Button>
+            <div className="text-center mt-6 print:hidden">
+              <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>
+                + Cadastrar outro pet
+              </Button>
+            </div>
+          </main>
         </div>
-      </main>
-    </div>
-  );
+        );
 };
 
-export default RGPage;
+        export default RGPage;
