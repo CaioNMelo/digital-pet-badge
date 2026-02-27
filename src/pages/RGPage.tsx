@@ -3,7 +3,7 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Share2, PawPrint } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
-import html2canvas from "html2canvas";
+import { toJpeg } from "html-to-image";
 import jsPDF from "jspdf";
 
 interface PetData {
@@ -189,36 +189,25 @@ const RGPage = () => {
   const handleDownloadPDF = async () => {
     if (!cardRef.current) return;
 
-    // Esconde elementos que não devem aparecer no PDF
-    const canvas = await html2canvas(cardRef.current, {
-      scale: 3,
-      useCORS: true,
-      allowTaint: true,
+    // html-to-image respeita nativamente transform:rotate() e CSS transforms
+    // ao contrário do html2canvas que não renderiza corretamente
+    const imgData = await toJpeg(cardRef.current, {
+      quality: 0.97,
+      pixelRatio: 3, // alta resolução
       backgroundColor: "#ffffff",
-      logging: false,
-      // CRÍTICO: desabilita foreignObject — força renderização nativa do canvas
-      // que respeita transform: rotate corretamente
-      foreignObjectRendering: false,
-      // Garante que imagens de outras origens sejam carregadas
-      onclone: (_doc, element) => {
-        // Remove qualquer writing-mode residual no clone
-        element.querySelectorAll("*").forEach((el) => {
-          const htmlEl = el as HTMLElement;
-          if (htmlEl.style) {
-            htmlEl.style.writingMode = "";
-          }
-        });
-      },
+      fetchRequestInit: { cache: "no-cache" }, // evita CORS em imagens
+      skipFonts: false,
     });
 
-    const imgData = canvas.toDataURL("image/jpeg", 0.97);
-    const imgW = canvas.width;
-    const imgH = canvas.height;
-
+    // Calcula dimensões para caber em A4 paisagem (297x210 mm) com margem de 8mm
     const pdfW = 297;
     const pdfH = 210;
-    const printW = pdfW - 16;
-    const printH = (imgH * printW) / imgW;
+    const printW = pdfW - 16; // 8mm de margem em cada lado
+
+    // Mantém a proporção real do card (960x600)
+    const cardAspect = 600 / 960;
+    const printH = printW * cardAspect;
+
     const x = 8;
     const y = printH < pdfH ? (pdfH - printH) / 2 : 4;
 
