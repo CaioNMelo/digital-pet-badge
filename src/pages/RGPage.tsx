@@ -190,10 +190,10 @@ const RGPage = () => {
 
                   {/* METADE ESQUERDA */}
                   <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
-                    <VText w={22} h={HH} size={8} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    <VText w={22} h={HH} size={8} weight={650} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
                     <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "12px 6px", gap: 6 }}>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", height: "100%", gap: 4, paddingBottom: 6, flexShrink: 0 }}>
-                        <VText w={32} h={HH - 50} size={17} weight={900} rotate={-90} spacing={0}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
+                        <VText w={32} h={HH - 50} size={17} weight={700} rotate={-90} spacing={0}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
                         <VText w={14} h={HH - 50} size={7} weight={700} rotate={-90} spacing={0.3}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
                       </div>
                       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-evenly", height: "100%", padding: "0 8px" }}>
