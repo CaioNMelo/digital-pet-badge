@@ -57,14 +57,40 @@ const RGPage = () => {
 
   const handleDownloadPDF = async () => {
     if (!cardRef.current) return;
-    const canvas = await html2canvas(cardRef.current, { scale: 3, useCORS: true, backgroundColor: null });
-    const imgData = canvas.toDataURL("image/png");
+
+    // Configurações para o A4 (Paisagem) - 297mm x 210mm
+    const pdfW = 297;
+    const pdfH = 210;
+
+    // Aumentar escala para melhor resolução
+    const canvas = await html2canvas(cardRef.current, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false
+    });
+
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+    // Converter proporções para manter o layout intocado (calcula altura proporcional da div pra folha)
     const imgW = canvas.width;
     const imgH = canvas.height;
-    const pdfW = 180;
-    const pdfH = (imgH * pdfW) / imgW;
-    const pdf = new jsPDF({ orientation: pdfH > pdfW ? "portrait" : "landscape", unit: "mm", format: [pdfW + 20, pdfH + 20] });
-    pdf.addImage(imgData, "PNG", 10, 10, pdfW, pdfH);
+
+    // Queremos que a imagem docupe 260mm (para ter borda branca) e achamos a altura
+    const printW = 260;
+    const printH = (imgH * printW) / imgW;
+
+    // Centralizar na horizontal e vertical (se couber)
+    const x = (pdfW - printW) / 2;
+    const y = printH < pdfH ? (pdfH - printH) / 2 : 10;
+
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4"
+    });
+
+    pdf.addImage(imgData, "JPEG", x, y, printW, printH);
     pdf.save(`RG_${pet.nome}_${pet.registroId}.pdf`);
   };
 
@@ -79,7 +105,7 @@ const RGPage = () => {
 
   return (
     <div className="min-h-screen bg-muted/50">
-      <header className="bg-background/80 backdrop-blur-md border-b sticky top-0 z-50">
+      <header className="bg-background/80 backdrop-blur-md border-b sticky top-0 z-50 print:hidden">
         <div className="container mx-auto flex items-center gap-4 h-16 px-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
             <ArrowLeft className="w-5 h-5" />
@@ -93,140 +119,278 @@ const RGPage = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-10 max-w-2xl">
-        <div className="text-center mb-10">
+      <main className="container mx-auto px-4 py-10 max-w-5xl">
+        <div className="text-center mb-10 print:hidden">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-semibold mb-4">
             ✅ Registro concluído
           </div>
           <h1 className="text-3xl font-heading font-bold text-foreground mb-2">RG Digital do Pet</h1>
-          <p className="text-muted-foreground">O registro de <strong className="text-foreground">{pet.nome}</strong> foi gerado com sucesso!</p>
+          <p className="text-muted-foreground">Documento de <strong className="text-foreground">{pet.nome}</strong> pronto para download/impressão.</p>
         </div>
 
-        {/* RG Card - Official Brazilian RG Style */}
-        <div ref={cardRef} className="mx-auto max-w-[520px]">
-          <div className="rounded-xl overflow-hidden shadow-2xl border-2 border-primary/20" style={{ background: "#f0faf7" }}>
-            {/* Top Banner - Blue header like real RG */}
-            <div className="px-5 py-3 text-center" style={{ background: "linear-gradient(135deg, #1a5c4c, #1a7a6a, #2196a8)" }}>
-              <p className="text-[10px] tracking-[3px] uppercase font-bold" style={{ color: "rgba(255,255,255,0.7)" }}>República Federativa do Brasil</p>
-              <p className="text-lg font-heading font-black tracking-wide" style={{ color: "white" }}>REGISTRO GERAL — PET</p>
-              <p className="text-[10px] tracking-[2px]" style={{ color: "rgba(255,255,255,0.6)" }}>DOCUMENTO DE IDENTIFICAÇÃO ANIMAL</p>
-            </div>
+        {/* CONTAINER SCROLLÁVEL NA TELA PARA NÃO QUEBRAR O LAYOUT E MANTER PROPORÇÃO CORRETA PRA GERAR PDF */}
+        <div className="overflow-x-auto pb-4">
+          <div className="min-w-[1000px] flex justify-center">
 
-            {/* Body */}
-            <div className="p-5">
-              <div className="flex gap-5">
-                {/* Left Column - Photo + QR */}
-                <div className="flex-shrink-0 space-y-3">
-                  <div className="w-[110px] h-[130px] rounded-lg overflow-hidden border-2" style={{ borderColor: "#1a7a6a" }}>
-                    <img src={pet.foto} alt={pet.nome} className="w-full h-full object-cover" />
+            {/* INÍCIO DO RG - ESTILO IDENTIDADE ANIMAL DE PAPEL */}
+            {/* Proporção aprox de um papel A4 paisagem (ou uma folha contendo as duas faces) */}
+            <div
+              ref={cardRef}
+              className="relative w-[1000px] h-[660px] bg-white flex items-center justify-center p-6 shadow-2xl"
+              style={{ fontFamily: "'Arial', sans-serif" }}
+            >
+
+              {/* Moldura Verde com Patinhas (Fundo Externo) */}
+              <div
+                className="absolute inset-4 rounded-md"
+                style={{
+                  backgroundColor: "#597E69", // Verde Escuro do Template
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 2c-1.6 0-3 1.5-3 3s1.4 3 3 3 3-1.5 3-3-1.4-3-3-3zM5.5 6C4.1 6 3 7.5 3 9s1.1 3 2.5 3S8 10.5 8 9 6.9 6 5.5 6zm13 0c-1.4 0-2.5 1.5-2.5 3s1.1 3 2.5 3S21 10.5 21 9s-1.1-3-2.5-3zM12 13c-2.4 0-4.5 1.5-5.5 3.5-.5 1 .2 2 1.2 2 .5 0 1-.2 1.5-.4 1-.5 2-.5 2.8-.5s1.8 0 2.8.5c.5.2 1 .4 1.5.4 1 0 1.7-1 1.2-2C16.5 14.5 14.4 13 12 13z' fill='%23ffffff' fill-opacity='0.07'/%3E%3C/svg%3E")`
+                }}
+              />
+
+              {/* Container do Documento (As duas metades) */}
+              <div className="relative w-full h-full flex gap-3 p-3">
+
+                {/* METADE ESQUERDA - FRENTE */}
+                <div
+                  className="flex-1 rounded-sm relative"
+                  style={{ backgroundColor: "#D4E8CD" }} // Verde Claro
+                >
+                  {/* Borda Esquerda - Registrado */}
+                  <div
+                    className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center"
+                    style={{ backgroundColor: "#D4E8CD" }}
+                  >
+                    <span
+                      className="text-[10px] font-bold tracking-tight transform rotate-180 select-none uppercase whitespace-nowrap"
+                      style={{ writingMode: "vertical-rl", color: "#1a1a1a" }}
+                    >
+                      REGISTRADO POR WWW.REGISTRAPET.PET
+                    </span>
                   </div>
-                  <div className="flex justify-center bg-background rounded-lg p-2">
-                    <QRCodeSVG
-                      value={`https://registrarpet.com/consulta/${pet.registroId}`}
-                      size={80}
-                      level="M"
-                      fgColor="#1a5c4c"
-                    />
+
+                  {/* Conteúdo da Frente */}
+                  <div className="absolute inset-y-0 left-10 right-4 py-8 flex items-center justify-between">
+
+                    {/* Títulos Rotacionados */}
+                    <div className="h-full flex flex-col justify-end items-center mr-4 w-12">
+                      <span
+                        className="text-2xl font-black transform rotate-180 whitespace-nowrap mb-2"
+                        style={{ writingMode: "vertical-rl", color: "#1a1a1a", letterSpacing: "-0.5px" }}
+                      >
+                        REGISTRO DOS ANIMAIS DO BRASIL
+                      </span>
+                      <span
+                        className="text-[10px] font-bold transform rotate-180 whitespace-nowrap"
+                        style={{ writingMode: "vertical-rl", color: "#1a1a1a" }}
+                      >
+                        ATRAVÉS DO SITE WWW.REGISTRAPET.PET
+                      </span>
+                    </div>
+
+                    {/* Área das Fotos/Patas */}
+                    <div className="flex-1 flex flex-col items-center justify-between py-6 h-full mr-12">
+                      {/* Caixa 1 - Espaço em branco pra Foto (ou com a foto preenchida) */}
+                      <div className="w-56 h-56 bg-white border border-gray-400 p-1 flex items-center justify-center relative shadow-sm">
+                        <img src={pet.foto} alt={pet.nome} className="w-full h-full object-cover" />
+                      </div>
+
+                      {/* Caixa 2 - Dedo do pet (Na versão app vamos pôr o qrcode) */}
+                      <div className="w-56 h-56 bg-white border border-gray-400 p-2 flex items-center justify-center shadow-sm relative overflow-hidden">
+                        {/* Marca d'agua da pata proximo ao original */}
+                        <div className="absolute inset-0 opacity-10 pointer-events-none flex items-center justify-center">
+                          <PawPrint className="w-40 h-40 text-black" />
+                        </div>
+                        <QRCodeSVG
+                          value={`https://registrarpet.com/consulta/${pet.registroId}`}
+                          size={160}
+                          level="M"
+                          fgColor="#1a1a1a"
+                          className="relative z-10"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Assinatura Rotacionada */}
+                    <div className="h-full flex flex-col justify-center items-center w-8">
+                      <span
+                        className="text-sm font-bold transform rotate-180 whitespace-nowrap"
+                        style={{ writingMode: "vertical-rl", color: "#1a1a1a" }}
+                      >
+                        • ASSINATURA
+                      </span>
+                    </div>
+
                   </div>
                 </div>
 
-                {/* Right Column - Info */}
-                <div className="flex-1 min-w-0 space-y-2.5">
-                  {/* Registration Number */}
-                  <div className="rounded-lg px-3 py-1.5" style={{ background: "#1a7a6a" }}>
-                    <p className="text-[9px] uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.7)" }}>Nº de Registro</p>
-                    <p className="font-mono font-bold text-sm tracking-wider" style={{ color: "white" }}>{pet.registroId}</p>
+
+                {/* DIVISÓRIA (Dobra) */}
+                <div className="w-4 flex flex-col items-center justify-between py-4 opacity-50 z-10">
+                  <div className="w-px h-full border-r-2 border-dashed border-gray-400/50 mix-blend-overlay"></div>
+                </div>
+
+
+                {/* METADE DIREITA - VERSO */}
+                <div
+                  className="flex-1 rounded-sm relative overflow-hidden"
+                  style={{ backgroundColor: "#D4E8CD" }} // Verde Claro
+                >
+
+                  {/* Título Rotacionado Carteira */}
+                  <div
+                    className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center border-r border-[#597E69]/20"
+                    style={{ backgroundColor: "#D4E8CD" }}
+                  >
+                    <span
+                      className="text-sm font-bold tracking-widest transform rotate-180 whitespace-nowrap"
+                      style={{ writingMode: "vertical-rl", color: "#1a1a1a" }}
+                    >
+                      CARTEIRA DE IDENTIDADE ANIMAL
+                    </span>
                   </div>
 
-                  {/* Pet Name */}
-                  <div className="border-b pb-1.5" style={{ borderColor: "#1a7a6a33" }}>
-                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Nome</p>
-                    <p className="font-heading font-black text-foreground text-base">{pet.nome}</p>
+                  {/* Borda Direita - Registrado */}
+                  <div
+                    className="absolute right-0 top-0 bottom-0 w-8 flex items-center justify-center"
+                    style={{ backgroundColor: "#D4E8CD" }}
+                  >
+                    <span
+                      className="text-[10px] font-bold tracking-tight transform rotate-180 select-none uppercase whitespace-nowrap"
+                      style={{ writingMode: "vertical-rl", color: "#1a1a1a" }}
+                    >
+                      REGISTRADO POR WWW.REGISTRAPET.PET
+                    </span>
                   </div>
 
-                  {/* Grid Info */}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                    <div className="border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Espécie</p>
-                      <p className="text-xs font-semibold text-foreground">{speciesLabel[pet.especie] || pet.especie}</p>
-                    </div>
-                    <div className="border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Raça</p>
-                      <p className="text-xs font-semibold text-foreground">{pet.raca || "SRD"}</p>
-                    </div>
-                    <div className="border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Sexo</p>
-                      <p className="text-xs font-semibold text-foreground capitalize">{pet.sexo === "macho" ? "Macho" : "Fêmea"}</p>
-                    </div>
-                    <div className="border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Nascimento</p>
-                      <p className="text-xs font-semibold text-foreground">{formatDate(pet.dataNascimento)}</p>
-                    </div>
-                    <div className="col-span-2 border-b pb-1" style={{ borderColor: "#1a7a6a22" }}>
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Cor Predominante</p>
-                      <p className="text-xs font-semibold text-foreground">{pet.corPredominante || "Não informada"}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  {/* Dados - Grid */}
+                  <div className="absolute inset-y-0 left-12 right-12 py-10 px-2 flex flex-col gap-8 justify-center">
 
-              {/* Owner Section */}
-              <div className="mt-4 pt-3 border-t-2" style={{ borderColor: "#1a7a6a33" }}>
-                <p className="text-[9px] uppercase tracking-[2px] font-bold mb-2" style={{ color: "#1a7a6a" }}>Dados do Tutor Responsável</p>
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                  <div>
-                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Nome</p>
-                    <p className="text-xs font-semibold text-foreground">{pet.nomeTutor}</p>
-                  </div>
-                  <div>
-                    <p className="text-[9px] uppercase tracking-wider text-muted-foreground">CPF</p>
-                    <p className="text-xs font-semibold text-foreground">{pet.cpfTutor}</p>
-                  </div>
-                  {pet.telefone && (
-                    <div>
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Telefone</p>
-                      <p className="text-xs font-semibold text-foreground">{pet.telefone}</p>
+                    {/* Linha 1 */}
+                    <div className="flex gap-4 items-end relative">
+                      <div className="w-16 font-bold text-sm text-[#1a1a1a]">NOME</div>
+                      <div className="flex-1 border-b border-gray-500 font-bold text-xl uppercase pb-1 leading-none">
+                        {pet.nome || "\u00A0"}
+                      </div>
                     </div>
-                  )}
-                  {pet.endereco && (
-                    <div className={pet.telefone ? "" : "col-span-2"}>
-                      <p className="text-[9px] uppercase tracking-wider text-muted-foreground">Endereço</p>
-                      <p className="text-xs font-semibold text-foreground truncate">{pet.endereco}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Footer */}
-              <div className="mt-4 pt-2 flex items-center justify-between border-t" style={{ borderColor: "#1a7a6a22" }}>
-                <div>
-                  <p className="text-[8px] uppercase tracking-wider text-muted-foreground">Data de emissão</p>
-                  <p className="text-[10px] font-semibold text-foreground">{today}</p>
+                    {/* Linha 2 */}
+                    <div className="flex gap-6 items-end">
+                      <div className="flex-1 flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a] whitespace-nowrap">NASCIMENTO</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-base uppercase pb-1 leading-none text-center">
+                          {formatDate(pet.dataNascimento) || "\u00A0"}
+                        </div>
+                      </div>
+
+                      <div className="flex-1 flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a] whitespace-nowrap">NÚMERO DE REGISTRO</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-base uppercase pb-1 leading-none text-center">
+                          {pet.registroId || "\u00A0"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Linha 3 */}
+                    <div className="flex gap-6 items-end">
+                      <div className="flex-1 flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a] whitespace-nowrap">NATURALIDADE</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-sm uppercase pb-1 leading-none truncate" title={pet.endereco}>
+                          {/* Limitando o endereco pro layout nao quebrar se for gigante, ou apenas estado/cidade se tiver */}
+                          {pet.endereco ? pet.endereco.includes('-') ? pet.endereco.split('-')[1].trim() : pet.endereco : "_________"}
+                        </div>
+                      </div>
+
+                      <div className="flex-[0.8] flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a] whitespace-nowrap">DATA DE EXPEDIÇÃO</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-base uppercase pb-1 leading-none text-center">
+                          {today}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Linha 4 (Grid tripla para Sexo, Espécie, etc) */}
+                    <div className="flex gap-6 items-end">
+                      <div className="flex-[0.4] flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a]">SEXO</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-base uppercase pb-1 leading-none text-center">
+                          {pet.sexo || "\u00A0"}
+                        </div>
+                      </div>
+
+                      <div className="flex-[0.6] flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a] whitespace-nowrap">ESPÉCIE</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-sm uppercase pb-1 leading-none text-center">
+                          {speciesLabel[pet.especie] || pet.especie || "\u00A0"}
+                        </div>
+                      </div>
+
+                      <div className="flex-1 flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a]">RAÇA</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-sm uppercase pb-1 leading-none text-center truncate">
+                          {pet.raca || "SRD"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Linha 5 */}
+                    <div className="flex gap-6 items-end">
+                      <div className="flex-1 flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a]">CASTRADO</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-base uppercase pb-1 leading-none text-center">
+                          A VERIFICAR
+                        </div>
+                      </div>
+
+                      <div className="flex-1 flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a]">PORTE</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-base uppercase pb-1 leading-none text-center">
+                          _______
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Linha 6 */}
+                    <div className="flex gap-6 items-end pb-8">
+                      <div className="flex-1 flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a]">TUTORES</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-sm uppercase pb-1 leading-none truncate">
+                          {pet.nomeTutor || "\u00A0"}
+                        </div>
+                      </div>
+
+                      <div className="flex-[0.8] flex gap-2 items-end">
+                        <div className="font-bold text-sm text-[#1a1a1a]">PELAGEM</div>
+                        <div className="flex-1 border-b border-gray-500 font-semibold text-sm uppercase pb-1 leading-none text-center">
+                          {pet.corPredominante || "_______"}
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-[8px] text-muted-foreground">registrarpet.com</p>
-                  <p className="text-[8px] font-bold" style={{ color: "#1a7a6a" }}>🐾 RegistrarPet</p>
-                </div>
+
               </div>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 mt-10 max-w-[520px] mx-auto">
-          <Button variant="hero" size="lg" className="flex-1" onClick={handleDownloadPDF}>
-            <Download className="w-5 h-5" />
-            Baixar RG do Pet em PDF
+        {/* Actions Button */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-8 max-w-[600px] mx-auto print:hidden">
+          <Button variant="hero" size="lg" className="flex-1 h-14" onClick={handleDownloadPDF}>
+            <Download className="w-5 h-5 mr-1" />
+            Baixar RG em PDF (A4)
           </Button>
           {navigator.share && (
-            <Button variant="outline" size="lg" onClick={handleShare}>
-              <Share2 className="w-5 h-5" />
+            <Button variant="outline" size="lg" className="h-14" onClick={handleShare}>
+              <Share2 className="w-5 h-5 mr-1" />
               Compartilhar
             </Button>
           )}
         </div>
 
-        <div className="text-center mt-6">
+        <div className="text-center mt-6 print:hidden">
           <Button variant="ghost" className="text-primary" onClick={() => navigate("/cadastrar")}>
             + Cadastrar outro pet
           </Button>
