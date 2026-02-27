@@ -99,7 +99,7 @@ const RGPage = () => {
 
   const CW = 960, CH = 600, HH = CH - 24;
   const HALF = Math.floor((HH - 2) / 2);
-  const IMG_SIZE = 168; // Levemente menor para aumentar o respiro vertical
+  const IMG_SIZE = 156; // Reduzido ligeiramente para dar bastante espaço vertical para a assinatura
 
   const grupo1 = [
     { label: "NOME", value: pet.nome, flex: 1.9 },
@@ -153,29 +153,25 @@ const RGPage = () => {
                   {/* METADE ESQUERDA */}
                   <div style={{ flex: 1, borderRadius: 4, backgroundColor: "#cfe8c8", display: "flex", overflow: "hidden" }}>
 
-                    {/* Faixa lateral esquerda — "REGISTRADO POR..." como borda fina */}
-                    <VText w={20} h={HH} size={7.5} weight={700} rotate={-90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
+                    {/* Área interna com padding EXATO de 20px em todos os lados (Respiro de Segurança) */}
+                    <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "stretch", padding: 20, gap: 0, overflow: "hidden" }}>
 
-                    {/* Área interna flex com layout em linha padrão */}
-                    <div style={{ flex: 1, display: "flex", flexDirection: "row", alignItems: "stretch", padding: "18px 12px 18px 8px", gap: 0, overflow: "hidden" }}>
-
-                      {/* Bloco de títulos verticais (Vertical de novo como pedido) */}
+                      {/* Bloco de títulos verticais (Margem Lateral Esquerda) */}
                       <div style={{
                         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                         borderRight: "1.5px solid rgba(74,110,88,0.25)",
-                        paddingRight: 8, marginRight: 20, gap: 5, flexShrink: 0,
+                        paddingRight: 10, marginRight: 30, gap: 5, flexShrink: 0,
                       }}>
                         <VText w={36} h={HH - 40} size={16} weight={800} rotate={-90} spacing={0.2}>REGISTRO DOS ANIMAIS DO BRASIL</VText>
                         <VText w={14} h={HH - 40} size={7} weight={700} rotate={-90} spacing={0.5}>ATRAVES DO SITE WWW.REGISTRAPET.PET</VText>
                       </div>
 
-                      {/* Coluna central: Foto -> Assinatura (Horizontal) -> QR Code */}
+                      {/* Coluna central EXATAMENTE ALINHADA NO CENTRO: Foto -> Assinatura -> QR Code */}
                       <div style={{
                         flex: 1,
                         display: "flex", flexDirection: "column",
                         alignItems: "center", justifyContent: "center",
-                        gap: 12,
-                        padding: "0 10px",
+                        gap: 16, // Maior espaço entre imagem, assinatura e qr
                       }}>
 
                         {/* Foto */}
@@ -196,12 +192,11 @@ const RGPage = () => {
 
                         {/* Linha de assinatura HORIZONTAL no meio */}
                         <div style={{
-                          width: IMG_SIZE,
+                          width: IMG_SIZE + 20, // Linha de assinatura um pouco maior que a foto para ficar elegante
                           display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                          paddingTop: 4, paddingBottom: 4
                         }}>
-                          <div style={{ width: "100%", height: 1.5, backgroundColor: "rgba(26,26,26,0.5)" }} />
-                          <span style={{ fontSize: 8, fontWeight: 700, color: "#333", textTransform: "uppercase", fontFamily: "Arial, sans-serif", letterSpacing: 1.5 }}>
+                          <div style={{ width: "100%", height: 1.5, backgroundColor: "rgba(26,26,26,0.6)" }} />
+                          <span style={{ fontSize: 8.5, fontWeight: 700, color: "#333", textTransform: "uppercase", fontFamily: "Arial, sans-serif", letterSpacing: 1.5 }}>
                             ASSINATURA DO TUTOR
                           </span>
                         </div>
@@ -217,11 +212,11 @@ const RGPage = () => {
                           boxShadow: "0 2px 10px rgba(0,0,0,0.18)",
                         }}>
                           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.05 }}>
-                            <PawPrint style={{ width: 115, height: 115, color: "#000" }} />
+                            <PawPrint style={{ width: 110, height: 110, color: "#000" }} />
                           </div>
                           <QRCodeSVG
                             value={`https://registrarpet.com/consulta/${pet.registroId}`}
-                            size={IMG_SIZE - 24}
+                            size={IMG_SIZE - 20}
                             level="M"
                             fgColor="#1a1a1a"
                             style={{ position: "relative", zIndex: 1 }}
@@ -230,9 +225,6 @@ const RGPage = () => {
 
                       </div>
                     </div>
-
-                    {/* Faixa lateral direita da metade esquerda (se mantém na divisória) */}
-                    <VText w={20} h={HH} size={7.5} weight={700} rotate={90} spacing={0.4}>REGISTRADO POR WWW.REGISTRAPET.PET</VText>
                   </div>
 
                   {/* DIVISÓRIA */}
