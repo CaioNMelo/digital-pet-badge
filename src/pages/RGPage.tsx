@@ -29,25 +29,60 @@ const VText = ({ children, w, h, size = 9, weight = 700, rotate = -90, spacing =
   </div>
 );
 
-// Coluna de campo vertical: label + linha + valor, rodado -90°
-// colH = altura do container = comprimento disponível para o texto após rotação
+// FieldCol: coluna vertical de campo para o RG.
+// Usa writing-mode:vertical-rl que o browser E o html-to-image renderizam corretamente.
+// Layout: valor (em cima, grande) | linha horizontal | label (em baixo, pequeno)
 const FieldCol = ({ label, value, colH, flexVal = 1 }: {
   label: string; value: string; colH: number; flexVal?: number;
 }) => (
-  <div style={{ flex: flexVal, height: colH, position: "relative", overflow: "hidden", borderRight: "1px solid rgba(74,104,88,0.22)" }}>
-    {/* O div interno tem largura = colH para que o texto caiba após rotate(-90deg) */}
-    <div style={{
-      position: "absolute", top: "50%", left: "50%",
-      width: colH - 20,
-      transform: "translate(-50%, -50%) rotate(-90deg)",
-      display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4, padding: "0 4px",
-    }}>
-      <span style={{ fontSize: 7, fontWeight: 700, color: "#2a2a2a", textTransform: "uppercase", fontFamily: "Arial, sans-serif", whiteSpace: "nowrap", lineHeight: 1, letterSpacing: 0.3 }}>
-        {label}
-      </span>
-      <div style={{ width: "100%", height: 1.5, backgroundColor: "#444", flexShrink: 0 }} />
-      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#111", textTransform: "uppercase", fontFamily: "Arial, sans-serif", whiteSpace: "nowrap", lineHeight: 1, overflow: "hidden", maxWidth: "100%", textOverflow: "ellipsis" }}>
+  <div style={{
+    flex: flexVal,
+    height: colH,
+    overflow: "hidden",
+    borderRight: "1px solid rgba(74,104,88,0.22)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "6px 2px",
+    gap: 0,
+  }}>
+    {/* Valor — ocupa a maior parte do espaço — fica no topo da coluna (lado direito do card) */}
+    <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 0, overflow: "hidden" }}>
+      <span style={{
+        writingMode: "vertical-rl",
+        transform: "rotate(180deg)",
+        fontSize: 12,
+        fontWeight: 800,
+        color: "#111",
+        textTransform: "uppercase",
+        fontFamily: "Arial, sans-serif",
+        lineHeight: 1,
+        overflow: "hidden",
+        maxHeight: "100%",
+        letterSpacing: 0.5,
+      }}>
         {value || "\u00A0"}
+      </span>
+    </div>
+
+    {/* Linha separadora horizontal */}
+    <div style={{ width: "75%", height: 1.5, backgroundColor: "#555", flexShrink: 0, margin: "4px 0" }} />
+
+    {/* Label — fixo em baixo */}
+    <div style={{ flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: 2 }}>
+      <span style={{
+        writingMode: "vertical-rl",
+        transform: "rotate(180deg)",
+        fontSize: 8,
+        fontWeight: 700,
+        color: "#1a1a1a",
+        textTransform: "uppercase",
+        fontFamily: "Arial, sans-serif",
+        lineHeight: 1,
+        letterSpacing: 0.8,
+        whiteSpace: "nowrap",
+      }}>
+        {label}
       </span>
     </div>
   </div>
