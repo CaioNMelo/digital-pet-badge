@@ -134,7 +134,7 @@ const VerificarEmailPage = () => {
           <p className="text-xs text-muted-foreground text-center mt-6">
             Ainda não comprou?{" "}
             <a
-              href="https://pay.lowify.com.br/"
+              href="https://pay.lowify.com.br/checkout?product_id=lPmhx0"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary font-semibold hover:underline"
